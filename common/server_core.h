@@ -35,10 +35,13 @@ struct conn;
 typedef int (*fault_hook_fn)(void *fault_state, size_t chunk_len, size_t *prefix);
 
 /*
- * Progress hook, called by send_file_range() after every chunk (and after a
- * fault prefix) with the file index, the new file offset handed to the socket
- * and the number of data bytes just sent. Case 2 / Enhanced use it to update
- * the session table. NULL = none.
+ * Progress hook, called by send_file_range() with the file index, the file
+ * offset handed to the socket so far and the number of data bytes just sent:
+ *   - once right after FILE_HDR is sent, with new_off = start offset and n = 0
+ *     (so the session knows the current file even before its first chunk,
+ *     e.g. for a 0-byte file or a fault before the first chunk);
+ *   - after every chunk, and after a fault prefix (n may be 0).
+ * Case 2 / Enhanced use it to update the session table. NULL = none.
  */
 typedef void (*progress_hook_fn)(struct conn *c, uint32_t file_index, uint64_t new_off, uint64_t n);
 

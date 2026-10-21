@@ -1,0 +1,26 @@
+# Deviations from the submitted design document
+
+The design document (`Design_Document_Group_006_043_.pdf`) was reviewed against the
+assignment guidelines before implementation. This table lists every place where
+the implementation deliberately differs, and why. The final report's Design
+section must include it, as the guidelines require.
+
+| # | Design § | Design said | Implementation does | Why |
+|---|---|---|---|---|
+| 1 | 4.3, 6.1 | Client `SO_RCVTIMEO` = 15 s | Part I client: **no receive time-out**. Part II clients keep 15 s. | With the single-threaded server, queued clients wait for every earlier client. With 32 clients the later ones would time out and exit 1. |
+| 2 | 3.1 | Payload over 64 KB rejected for control messages | Cap **per message type**: MANIFEST up to 64 MiB, everything else ≤ 64 KB | The MANIFEST of `cane` (4 863 files) is about 250 KB and would have been rejected. |
+| 3 | 2.1, 7 | Topic array under an rwlock; a re-scan rebuilds it; sessions keep `topic_idx` | Each `topic_t` is allocated once and never moved or freed. The map is a sorted array of pointers. A re-scan only adds topics and swaps the new array in under a brief write lock. Sessions keep `topic_t*`. | A re-scan could otherwise realloc or reorder topics in use by worker threads, and with a reader-preferring rwlock the re-scan (and the 404 reply) would wait for every active transfer. |
+| 4 | 1.3 | — | Output goes to `output_dir/<topic exactly as typed>/`, which is created with `mkdir -p`. On success only the topic files remain (no `.part`/`.session`). | The grader checks the directory named after the topic it passed, even when the server matched it case-insensitively. |
+| 5 | 8.4 | `-Werror` in the Makefile | Shipped `make` uses `-Wall -Wextra` without `-Werror`. `make strict` adds `-Werror` and is our gate (gcc + clang). | One new warning on the grader's compiler version would otherwise mean no executables at all. |
+| 6 | 6.2 | Optional byte-range split for files > 8 MB (`ftruncate` + `pwrite`) | Not implemented. Each FETCH transfers one whole file, and big files still resume by byte offset. | Pre-sizing with `ftruncate` breaks the invariant ".part size = checkpoint offset". Animals-10 files are tens of KB. |
+| 7 | 4.4, 8.1 | Example "N = 1 700 chunks, roughly the size of cane"; folder `..._043_006` | That example is *gatto* (1 668 files); *cane* has 4 863. Every name uses `006_043`. | Text errors. |
+| 8 | 7 | Logs written to a file | CSV logs only when `FDS_LOG` / `FDS_EVENTS` are set (plus `FDS_RUN_ID`, `FDS_CLIENT_ID`). Otherwise a summary goes to stderr. | The guidelines forbid hard-coded paths. |
+| 9 | 4.1–4.3 | On a fault, the chunk that drew it is not sent at all | The draw is still one per 64 KB chunk with probability p. On a fault, a random prefix of 0..n−1 bytes of that chunk is sent first, then `shutdown`+`close`. | The guidelines require correctness when a disconnection happens "at any point in time". Most images are under 64 KB, so without this every fault would land at offset 0 and byte-offset resume would never be exercised. Byte accounting stays exact because the server counts what `sendfile()` returned. Consequence: at p = 1, Case 2/Enhanced still make forward progress (a partial chunk per connection); only Case 1 can never finish. |
+| 10 | 6.3 | — | `TCP_NODELAY` on every data socket. `MSG_MORE` still coalesces headers with data. | Nagle + delayed ACK can stall each per-file FETCH turnaround of Enhanced by up to ~40 ms. |
+| 11 | 5.5, 6.2 | Enhanced FETCH validated "with the rules of §5.5" | An Enhanced session keeps `sent_off[i]` per file. Check 5 becomes `offset == 0 or offset <= sent_off[i]`. | With K connections one (next_file, offset) pair cannot describe progress. |
+| 12 | 5.3 | 256 slots, expired after 300 s | DONE slots are reusable at once. If the table is full, the oldest non-ACTIVE slot is evicted. If all slots are ACTIVE → ERROR 503. | Long experiment series must not run out of slots. |
+| 13 | 6.2 | Enhanced recovery re-queues (file, offset) | Same, plus: after a client restart the queue is rebuilt from MANIFEST + files on disk (only if `.session` exists). Back-off resets after progress. FETCH is never pipelined. | Restart-safety. Unread data at close would turn the close into an RST that discards queued bytes. |
+| 14 | 8.1–8.3 | `accept_loop()` and `signal_thread()` in each `server.c` | They live in the shared `server_core.c`. Each `server.c` keeps `main()` + `serve_client()`. | One implementation of the thread model for all four versions. |
+| 15 | 6.5–6.7 | p ∈ {0, 5e-4, 1e-3, 2e-3, 5e-3, 1e-2}, K ∈ {2, 4, 8} | p ∈ {0, 1e-4, 2e-4, 5e-4, 1e-3, 2e-3, 5e-3, 1e-2}, K ∈ {1, 2, 4, 8}. Both data bytes and wire bytes are counted. A throughput-vs-overhead plot is added. | Case 1 has measured points before its DNF cliff. K = 1 separates parallelism from per-file FETCH cost. The guidelines ask for "throughput v/s overhead". |
+| 16 | 8.2 | `tcp_connect(ip, port)` | `getaddrinfo` (IP or host name), connect time-out 10 s, listen backlog `SOMAXCONN`. | Robustness. |
+| 17 | 8.2 | module names | Added `util` (argument parsing, paths, time, back-off) and `server_core`; `transfer` holds client `recv_file`/`recv_topic`. | Shared code. |

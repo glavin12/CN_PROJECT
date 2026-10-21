@@ -33,7 +33,8 @@ typedef enum {
 /*
  * Send file t->files[idx] from byte `off`: FILE_HDR(idx, size, off, name),
  * the bytes [off, size) in chunks, then FILE_END(idx).
- * Before each chunk: c->fault_hook (if set). After each chunk: c->progress_hook.
+ * Before each chunk: c->fault_hook (if set). c->progress_hook (if set) is
+ * called after FILE_HDR (n = 0) and after each chunk / fault prefix.
  * On a fault: sends the prefix, log_event("FAULT", ...), c->faulted = 1,
  * c->status = "FAULT", conn_abort(c). Updates all conn_t counters.
  * Requires off <= size (the caller validated it).
