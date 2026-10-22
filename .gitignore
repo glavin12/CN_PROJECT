@@ -19,3 +19,6 @@ __pycache__/
 *.pyc
 # never commit raw experiment scratch; final CSV/PNG go in Results/
 Results/raw/scratch/
+
+# agent worktrees
+.claude/
