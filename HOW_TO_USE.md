@@ -36,8 +36,9 @@ If the zip has an extra level, move `raw-img` up so the path is exactly `dataset
 (The topic names are the Italian folder
 names.) `dataset/` is git-ignored.
 
-No dataset yet? Generate a small one: `python3 tests/gen_dataset.py dataset/raw-img --profile animals --scale 0.05 --seed 1`
-(same topic names, about 14 MB per big topic).
+No dataset yet? Generate a small one: `python3 tests/gen_dataset.py dataset/raw-img --profile animals --scale 0.1 --seed 1`
+(same topic names, about 14 MB per big topic; `gatto` then has 167 files, 3753925 bytes, which is what the sample
+outputs below show. A smaller `--scale` gives fewer files, so the numbers differ).
 
 ## 3. Build and a first smoke test
 
@@ -312,6 +313,7 @@ python3 tools/exp/plot.py --results /tmp/fake/results
 | Client: `cannot connect to <ip>:<port>: Connection refused` or a time-out | Server not running, wrong IP/port, or the firewall: open the port on S (7.1). Test with `ping <S-ip>` and `nc -vz <S-ip> 5050`. |
 | Client: `server error 404: unknown topic` | The topic is not a folder of `topics_root_dir`; check `ls dataset/raw-img` and the path given to the server. The server prints `N topic(s) loaded`: it should say 10. |
 | Server says `error: topics_root_dir '...': No such file or directory` (exit 1), or loads `0 topic(s)` | Wrong dataset path. It must be the folder that **contains** the topic folders (`dataset/raw-img`, not `dataset/raw-img/gatto`). Relative paths are relative to where you started the server (`../dataset/raw-img` from a Part folder). |
+| Part I client prints `server busy (503); retrying in ... ms` | Normal with more than 256 simultaneous clients: the server has 256 threads, the client waits (back-off) and asks again, up to 100 tries, then exits 1. |
 | Case 1 client exits 2 / run counted DNF at high p | Expected, not a bug. Case 1 re-sends the whole topic, and an attempt of N chunks succeeds with probability (1-p)^N. For `gatto` N is about 1 700, so at p = 0.01 that is about 5e-8 per attempt: it never finishes within `max_retries`. Design section 4.4 predicts this; report it as DNF and show the predicted curve. Case 2 and Enhanced avoid it by resuming. |
 | Sweep clients time out although the network is fine | Clocks not synchronised (manual mode), or other heavy processes on A/B/S. Check `timedatectl`. |
 | `ssh ... Permission denied` in a sweep | Passwordless ssh not set up: `ssh-copy-id`, then `ssh user@ip true` must not prompt. |

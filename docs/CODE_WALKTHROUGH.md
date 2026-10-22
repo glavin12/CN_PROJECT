@@ -45,7 +45,7 @@ injected by the server, and three ways of recovering from them.
 
 | Folder | Server | Client | What it adds |
 |---|---|---|---|
-| `Part1/` | single or multi (`argv[3]`, default multi) | one `GET`, no retry | The basic service. Exit 1 on any failure. |
+| `Part1/` | single or multi (`argv[3]`, default multi) | one `GET`, no retry of the transfer; only `ERROR 503` (server busy) is retried with back-off (Deviation 26) | The basic service. Exit 1 on any other failure. |
 | `Part2_Case1/` | multi only + fault injection (`fault.c`) | retries the whole topic | No state on either side. After a fault the client sends `GET` again and gets every file again (`O_TRUNC`). Exit 2 after `max_retries` (default 100) attempts. |
 | `Part2_Case2/` | Case 1 + session table (`session.c`) | `.part` files + `.session` checkpoint (`checkpoint.c`) | After a fault the client sends `RESUME` with its checkpoint; the server validates it and sends only the missing bytes. Zero redundant bytes. |
 | `Part2_Case2_Enhanced/` | Case 2 + `MANIFEST_REQ` and `FETCH` handling | K parallel connections, shared work queue (`workq.c`), two engines: `threads` and `poll` (`client_poll.c`) | Parallelism, one file per `FETCH`, per-connection recovery. |
@@ -58,15 +58,15 @@ Executables are always exactly `server` and `client`. The Part II servers take
 ```
                               SERVER PROCESS
   server.c (per Part)                       main(): parse args, fill server_cfg_t
-     |  server_run(&cfg)                    -> server_core.c:554
+     |  server_run(&cfg)                    -> server_core.c:657
      v
   server_core.c                             accept loop, 256-thread cap, signal thread,
-     |   main thread: accept_loop (405)     CSV row per connection
-     |   signal thread: signal_thread (457)
-     |   worker thread: conn_thread -> run_conn (289) -> cfg->serve_client(c)
+     |   main thread: accept_loop (508)     CSV row per connection
+     |   signal thread: signal_thread (560)
+     |   worker thread: conn_thread -> run_conn (392) -> cfg->serve_client(c)
      |
      |   serve_client(conn_t *)  <- the ONLY part that differs per case (server.c)
-     |        |  uses: recv_msg / dec_*         (protocol.c)
+     |        |  uses: conn_recv_request (server_core.c:346) / dec_*  (protocol.c)
      |        |        topic_find_or_rescan     (topic_map.c)
      |        |        session_* (Case 2, Enh)  (session.c)
      |        |        fault_init / hook        (fault.c, Part II)
@@ -74,7 +74,7 @@ Executables are always exactly `server` and `client`. The Part II servers take
      |   transfer.c: serve_topic (341) -> send_file_range (268) -> send_chunks (234)
      |        |         sendfile() loop in send_data (132); fault hook before each chunk
      |        v
-     |   protocol.c enc_* + conn_send (server_core.c:159) -> send_encoded -> sendall (net.c:41)
+     |   protocol.c enc_* + conn_send (server_core.c:161) -> send_encoded -> sendall (net.c:41)
      v
   net.c, util.c, log.c are used by everybody
 
@@ -159,7 +159,13 @@ BEFORE `recv_msg` calls `malloc`, so a hostile header cannot make us allocate
 gigabytes (`protocol.c:308` comment).
 
 Size caps (Deviation 2): 64 KiB for every type, except `MANIFEST` which may be up
-to 64 MiB (the manifest of `cane` with 4 863 files is about 250 KB).
+to 64 MiB (the manifest of `cane` with 4 863 files is about 250 KB). These are the caps
+of `hdr_decode`, which the CLIENTS use. A SERVER is stricter (Deviation 25): it reads a
+request with `conn_recv_request()` (`server_core.c:346`), which accepts only the four
+client->server types (GET, RESUME, MANIFEST_REQ, FETCH) and a payload of at most
+`FDS_MAX_REQUEST_PAYLOAD` = 512 bytes (`fds.h:30`; the largest real request, RESUME/FETCH,
+is 349 bytes). The check is made on the header, BEFORE the payload buffer is allocated, so
+a peer announcing a 64 MiB "MANIFEST" gets `ERROR 400` at once and costs us no memory.
 
 ### 2.3 Message table
 
@@ -184,7 +190,7 @@ the other. Payload structs are in `protocol.h` (`m_topic_begin_t`, `m_file_hdr_t
 `m_resume_t`, ...). RESUME and FETCH share `m_resume_t` and `dec_resume`
 (`protocol.c:634`), and `enc_resume` (`protocol.c:423`) takes the type as an argument.
 
-RESUME_REJECT reasons (`fds.h:62-66`): 1 unknown topic, 2 file index out of range,
+RESUME_REJECT reasons (`fds.h:66-70`): 1 unknown topic, 2 file index out of range,
 3 file name mismatch, 4 offset beyond file size, 5 checkpoint ahead of data sent.
 
 ### 2.4 Big-endian packing: put_u* / get_u*
@@ -313,7 +319,7 @@ bytes, hex, environment. No networking.
   whose default action kills the process. A fault-injecting server and a retrying client must
   survive this, so every `send` carries `MSG_NOSIGNAL` and gets `EPIPE` as an ordinary error.
 - *sendfile has no flags.* `sendfile()` cannot take `MSG_NOSIGNAL`, so for the data path we
-  rely on `signal(SIGPIPE, SIG_IGN)` in `server_run` (`server_core.c:577`). See `transfer.c:13-16`.
+  rely on `signal(SIGPIPE, SIG_IGN)` in `server_run` (`server_core.c:680`). See `transfer.c:13-16`.
 - *EAGAIN meaning.* On a blocking socket with `SO_RCVTIMEO` set, `recv` fails with
   `EAGAIN`/`EWOULDBLOCK` when the time-out expires; the client reports it as "no data for 15 s".
   On a non-blocking socket (poll engine) the same errno means "not ready, wait for poll()".
@@ -367,7 +373,9 @@ flag); one struct per message (`m_topic_begin_t`, `m_file_hdr_t`, `m_resume_t`,
   `payload_len`, `recvall` the payload. Return values: `NET_OK`; `NET_EOF` only if the peer closed
   BETWEEN messages (zero bytes of a header); `NET_ERR` for errors or EOF inside a message (sets
   `errno = ECONNRESET`); `NET_PROTO` for a bad header. `*wire` accumulates received bytes even
-  when the read fails.
+  when the read fails. `recv_msg` is what the CLIENTS use to read server replies. The SERVERS no longer
+  call it for requests: they use `conn_recv_request` (section 3.7), which adds an absolute deadline and
+  a much smaller payload cap.
 
 **Tricky details.**
 
@@ -576,35 +584,47 @@ CSV row. Each `server.c` supplies `main()` and `serve_client(conn_t *)`.
 - `conn_t` (`server_core.h`): everything a connection needs: `fd`, `conn_id`, `peer`, `map`, `cfg`, start times, `kind`,
   `status` (default "OK"), `topic`, `session_id`/`have_session`, `k`, byte counters (`data_bytes`, `wire_bytes`, `chunks`,
   `files_completed`, `faulted`), the hooks (`fault_hook`, `fault_state`, `progress_hook`) and a `user` pointer. It is
-  `calloc`'d on the main thread (`server_core.c:343`) and owned by exactly one thread afterwards, so it needs no lock.
+  `calloc`'d on the main thread (`server_core.c:446`) and owned by exactly one thread afterwards, so it needs no lock.
 - `server_cfg_t`: port, root, `multi`, `p` (-1 in Part I), seed, `case_name`, `serve_client`.
-- Globals (`server_core.c:68-82`): `g_mu` + `g_cv` (condition variable on `CLOCK_MONOTONIC`), `g_active`, `g_main_done`,
+- Globals (`server_core.c:70-84`): `g_mu` + `g_cv` (condition variable on `CLOCK_MONOTONIC`), `g_active`, `g_main_done`,
   `g_listen_fd`, the totals, atomics `g_stopping` and `g_next_conn_id`, the map `g_map`, thread attribute `g_detached`.
 
 **Key functions.**
 
-- `server_run(cfg)` (`:554`): `log_init`; `signal(SIGPIPE, SIG_IGN)` (`:577`); **block SIGINT/SIGTERM in the main thread
-  BEFORE any thread is created** (`pthread_sigmask`, `:582`) so every thread inherits the mask; `init_state`; `topic_map_load`;
+- `server_run(cfg)` (`:657`): `log_init`; `signal(SIGPIPE, SIG_IGN)` (`:680`); **block SIGINT/SIGTERM in the main thread
+  BEFORE any thread is created** (`pthread_sigmask`, `:685`) so every thread inherits the mask; `init_state`; `topic_map_load`;
   `tcp_listen`; create the signal thread; `accept_loop`; then the main-thread part of shutdown; `pthread_join` of the signal
   thread; cleanup.
-- `accept_loop` (`:405`): `accept4(SOCK_CLOEXEC)`; on success `handle_new_conn`. On failure: if `g_stopping` -> break (the
+- `accept_loop` (`:508`): `accept4(SOCK_CLOEXEC)`; on success `handle_new_conn`. On failure: if `g_stopping` -> break (the
   normal way out); `EINTR`/`ECONNABORTED` and pending network errors -> continue; `EMFILE`/`ENFILE`/`ENOBUFS`/`ENOMEM` ->
   warn and sleep 100 ms (so it does not spin at 100% CPU); `EBADF`/`EINVAL`/... -> fatal.
-- `handle_new_conn` (`:329`): sets 30 s send/receive time-outs, `TCP_NODELAY`, optional buffer sizes; allocates the `conn_t`;
+- `handle_new_conn` (`:432`): sets 30 s send/receive time-outs, `TCP_NODELAY`, optional buffer sizes; allocates the `conn_t`;
   `conn_id = atomic_fetch_add(&g_next_conn_id, 1)`; records `start_ns` (the moment of accept). Then:
-  - **single mode** (`cfg->multi == 0`, `:362`): `g_active++` and `run_conn(c)` INLINE on the main thread, so the next `accept()`
+  - **single mode** (`cfg->multi == 0`, `:465`): `g_active++` and `run_conn(c)` INLINE on the main thread, so the next `accept()`
     happens only after this client is completely served;
-  - **multi mode**: reserve a slot under `g_mu` (`g_active < FDS_MAX_THREADS`, `:378`), then `pthread_create` a detached thread
+  - **multi mode**: reserve a slot under `g_mu` (`g_active < FDS_MAX_THREADS`, `:481`), then `pthread_create` a detached thread
     running `conn_thread` -> `run_conn`. If the cap is reached or `pthread_create` fails -> `refuse_busy`.
-- `refuse_busy` (`:310`): sends `ERROR 503 "server busy"`, `shutdown(SHUT_WR)`, then drains whatever request bytes already arrived
+- `refuse_busy` (`:413`): sends `ERROR 503 "server busy"`, `shutdown(SHUT_WR)`, then drains whatever request bytes already arrived
   (non-blocking, up to 8 reads) before `finish_conn`.
-- `run_conn` (`:289`): calls `serve_client(c)`; if `c->status` is still "OK", `drain_until_peer_closes`; then `finish_conn`.
-- `finish_conn` (`:213`): writes the CSV row (`log_conn`), closes the socket if still open, updates the totals under `g_mu`,
+- `conn_recv_request(c, &h, &payload, &wire)` (`:346`): THE way every server reads a client request (GET, RESUME,
+  MANIFEST_REQ, FETCH); `recv_msg` is not used by servers any more. Two protections (Deviation 25):
+  1. *Absolute deadline.* `deadline = now_ns() + FDS_SRV_TIMEOUT_S` (30 s) is computed once and the WHOLE request
+     (header + payload) must arrive before it. `read_by_deadline` (`:315`) loops on `wait_readable` (`:276`, a
+     `poll()` on the time left) and a `MSG_DONTWAIT` `recv`. `SO_RCVTIMEO` alone is not enough: it restarts on
+     every byte, so a peer sending one byte every 29 s would hold a thread for days (and, in `single` mode, the
+     whole server).
+  2. *Small, typed requests.* After the 16-byte header is decoded, anything that is not one of the four request
+     types, or has `payload_len > FDS_MAX_REQUEST_PAYLOAD` (512), returns `NET_PROTO` BEFORE `malloc`; the caller
+     answers `ERROR 400`. A hostile 64 MiB length therefore allocates nothing.
+  Return values: `NET_OK`; `NET_EOF` (clean close before a header); `NET_ERR` (`errno` = `EAGAIN` for the deadline,
+  `ECONNRESET` for a close mid-message); `NET_PROTO`.
+- `run_conn` (`:392`): calls `serve_client(c)`; if `c->status` is still "OK", `drain_until_peer_closes`; then `finish_conn`.
+- `finish_conn` (`:215`): writes the CSV row (`log_conn`), closes the socket if still open, updates the totals under `g_mu`,
   decrements `g_active`, **broadcasts** `g_cv`, frees the `conn_t`.
-- `conn_abort` (`:147`): `shutdown_close` and set `fd = -1`, so a second call and the later `close` in `finish_conn` are harmless.
-- `conn_send` (`:159`): `send_encoded` then `c->wire_bytes += len` (counted only if the whole message went out).
-  `conn_send_error` (`:187`): encodes and sends an ERROR and sets `c->status` through `status_for_code` (`:176`).
-- `signal_thread` (`:457`): see below.
+- `conn_abort` (`:149`): `shutdown_close` and set `fd = -1`, so a second call and the later `close` in `finish_conn` are harmless.
+- `conn_send` (`:161`): `send_encoded` then `c->wire_bytes += len` (counted only if the whole message went out).
+  `conn_send_error` (`:189`): encodes and sends an ERROR and sets `c->status` through `status_for_code` (`:178`).
+- `signal_thread` (`:560`): see below.
 
 **The 256-thread cap and ERROR 503.** `FDS_MAX_THREADS = 256`. The count `g_active` is incremented under `g_mu` BEFORE the thread
 is created, so it can never overshoot. The 257th simultaneous client gets `ERROR 503` and its connection is closed by the main
@@ -616,28 +636,30 @@ sessions, `session_create` fails and the server answers 503 "session table full"
 
 1. SIGINT and SIGTERM are blocked in every thread, so the kernel can deliver them only to the thread sitting in `sigwait()`.
    The shutdown logic is ordinary code in that thread, NOT an async-signal handler (where locks, `malloc` and stdio are forbidden).
-2. `signal_thread` (`:457`) wakes, sets `g_stopping`, and under `g_mu` calls `shutdown(g_listen_fd, SHUT_RDWR)` (`:490`). On Linux that
+2. `signal_thread` (`:560`) wakes, sets `g_stopping`, and under `g_mu` calls `shutdown(g_listen_fd, SHUT_RDWR)` (`:593`). On Linux that
    makes the `accept()` blocked in the main thread fail (`EINVAL`), and new connections are refused. `g_listen_fd` is read under
    `g_mu`, and the main thread closes it under `g_mu` too, so the signal thread never shuts down a descriptor number that was closed
    and reused.
 3. The main thread leaves `accept_loop`, closes the listener, and waits on `g_cv` until `g_active == 0` or `FDS_SHUTDOWN_GRACE_S` (5 s)
-   (`:616-630`). It logs a summary line, `log_close()`, frees the map (only if no worker is left), sets `g_main_done`, broadcasts, and
+   (`:719-733`). It logs a summary line, `log_close()`, frees the map (only if no worker is left), sets `g_main_done`, broadcasts, and
    returns exit code 0.
 4. The signal thread waits for `g_main_done` up to 6 s. If it is not set (single mode in the middle of a long transfer: the main thread
-   IS the worker) it logs, `log_close()`s and `_exit(0)`s so a shutdown never hangs (`:501-508`).
+   IS the worker) it logs, `log_close()`s and `_exit(0)`s so a shutdown never hangs (`:604-611`).
 5. If the accept loop ends by itself (fatal accept error), `server_run` wakes the signal thread with `pthread_kill(sig_tid, SIGTERM)`
-   (`:654`) so `pthread_join` does not hang. SIGINT/SIGTERM stay blocked on purpose.
-6. The condition variable uses `CLOCK_MONOTONIC` (`pthread_condattr_setclock`, `:530`) so a wall-clock change cannot stretch the grace.
+   (`:757`) so `pthread_join` does not hang. SIGINT/SIGTERM stay blocked on purpose.
+6. The condition variable uses `CLOCK_MONOTONIC` (`pthread_condattr_setclock`, `:633`) so a wall-clock change cannot stretch the grace.
 7. The Enhanced server's FETCH loop checks `server_stopping()` between files: "finish the file in flight, take no new one"
    (`Part2_Case2_Enhanced/server.c:327`).
 
-**The drain before `end_ns`.** `drain_until_peer_closes` (`:270`) runs after a normal end of service (status "OK"): `shutdown(SHUT_WR)` (we
-are done sending), set a 5 s `SO_RCVTIMEO`, and `recv` until it returns 0 (the client closed), an error, or the time-out. Why (Deviation 21):
+**The drain before `end_ns`.** `drain_until_peer_closes` (`:292`) runs after a normal end of service (status "OK"): `shutdown(SHUT_WR)` (we
+are done sending), then wait with `wait_readable` and a non-blocking `recv` until it returns 0 (the client closed), data/an error, or the
+deadline. The 5 s deadline is ABSOLUTE (`now_ns() + FDS_SHUTDOWN_GRACE_S`, computed once), so a peer trickling bytes cannot stretch it (it
+would otherwise hold the single-mode server's only thread). Why (Deviation 21):
 `send`/`sendfile` return when the kernel has QUEUED the data, not when the client has received it. If `end_ns` were taken right after the
 last `send`, the last few MB still in the socket buffers would be outside the measured interval and the throughput would be inflated
-(about 10% at N = 1). Every client closes right after its last message, so the wait is about one round trip; the 5 s cap bounds a misbehaving
+(about 10% at N = 1). Every client closes right after its last message, so the wait is about one round trip; the 5 s absolute cap bounds a misbehaving
 client. It also guarantees that the final `close()` is a clean FIN with no unread data (never an RST). `finish_conn` takes `end_ns = now_ns()`
-only afterwards (`:225`).
+only afterwards (`:227`).
 
 **Other tricky details.**
 
@@ -652,7 +674,7 @@ only afterwards (`:225`).
 **Responsibility.** Decide, per 64 KB chunk, whether to cut the connection.
 
 **Key data structure.** `fault_state_t` (`fault.h:30`): `p`, a `struct drand48_data rng`, counters. One per connection, on the worker thread's
-stack (`case1_serve`, `Part2_Case1/server.c:170`; `serve_client`, `Part2_Case2/server.c:227`; `enhanced_serve`, `Part2_Case2_Enhanced/server.c:388`),
+stack (`case1_serve`, `Part2_Case1/server.c:170`; `serve_client`, `Part2_Case2/server.c:234`; `enhanced_serve`, `Part2_Case2_Enhanced/server.c:397`),
 installed in `conn_t.fault_hook` / `fault_state`, and cleared before the function returns so nothing can reach the dead stack frame.
 
 **Key functions.**
@@ -813,26 +835,28 @@ Notation: `S:` server function, `C:` client function.
 
 Common to both modes:
 
-1. `C: main` (`Part1/client.c:314`) parses args (`parse_args`, `:102`), `mkdir_p output_dir/<topic>` (`make_output_dir`, `:124`), starts the clock
+1. `C: main` (`Part1/client.c:345`) parses args (`parse_args`, `:102`), `mkdir_p output_dir/<topic>` (`make_output_dir`, `:124`), starts the clock
    (`start_ns`, just before `connect`).
-2. `C: fetch_topic` (`:286`): `connect_to_server` (`:138`: `tcp_connect` with 10 s connect time-out, `TCP_NODELAY`; NO receive time-out, Deviation 1) ->
+2. `C: fetch_topic_when_free` (`:329`) calls `fetch_topic` (`:290`) in a loop (see "503 retry" below): `connect_to_server` (`:138`: `tcp_connect` with 10 s connect time-out, `TCP_NODELAY`; NO receive time-out, Deviation 1) ->
    `send_get` (`:153`: `enc_get`, `send_encoded`).
-3. `S: accept_loop` (`server_core.c:405`) -> `handle_new_conn` (`:329`) sets timeouts/NODELAY, allocates `conn_t`.
-4. `S: part1_serve` (`Part1/server.c:130`): `read_get_request` (`:73`: `recv_msg`, must be `MSG_GET`, `dec_get`; otherwise `ERROR 400`), `topic_find_or_rescan` (`:143`; unknown
+3. `S: accept_loop` (`server_core.c:508`) -> `handle_new_conn` (`:432`) sets timeouts/NODELAY, allocates `conn_t`.
+4. `S: part1_serve` (`Part1/server.c:130`): `read_get_request` (`:73`: `conn_recv_request`, 30 s absolute deadline, <= 512 bytes, must be `MSG_GET`, `dec_get`; otherwise `ERROR 400`), `topic_find_or_rescan` (`:143`; unknown
    -> `ERROR 404`), copy the canonical key into `c->topic`, `serve_topic(c, t, zero_sid, 0, 0, 1)` (`:151`).
 5. `S: serve_topic` (`transfer.c:341`): `TOPIC_BEGIN` (session id all zero), then for each file `send_file_range` (`FILE_HDR` with `MSG_MORE`, sendfile chunks, `FILE_END`),
    then `TOPIC_END`.
 6. `C: receive_topic` (`:170`): `recv_expect(TOPIC_BEGIN)`, `dec_topic_begin`, `recv_topic` (`transfer.c:600`) -> for each `FILE_HDR`, `recv_file` (RX_DIRECT: `open O_TRUNC`, `recv`+`write` loop,
    `FILE_END`), until `TOPIC_END`.
 7. `C: totals_agree` (`:221`): the three views must agree: TOPIC_BEGIN counts/bytes, TOPIC_END counts/bytes, what was stored. Prints one line, writes the CSV row, exit 0.
-8. `S: run_conn` (`server_core.c:289`): status "OK" -> `drain_until_peer_closes` (client closes right after TOPIC_END) -> `finish_conn` (CSV row, close, free).
+8. `S: run_conn` (`server_core.c:392`): status "OK" -> `drain_until_peer_closes` (client closes right after TOPIC_END) -> `finish_conn` (CSV row, close, free).
 
-Difference between modes (the only one): `handle_new_conn` (`server_core.c:362`).
+Difference between modes (the only one): `handle_new_conn` (`server_core.c:465`).
 
 - **single** (`./server <port> <dir> single`): `run_conn(c)` runs on the MAIN thread. While it serves client 1, clients 2..N wait in the kernel's listen backlog (their `connect`
   succeeded but nobody has called `accept`). The client has no receive time-out so it can wait (Deviation 1). Aggregate throughput does not grow with N.
 - **multi** (default): `g_active` slot reserved, `pthread_create(detached)` -> `conn_thread` -> `run_conn`. Many transfers overlap; the main thread immediately returns to `accept`.
-  At 256 simultaneous workers the next client gets `ERROR 503`.
+  At 256 simultaneous workers the next client gets `ERROR 503`. The Part I client does not give up on that: `fetch_topic` returns
+  `FETCH_BUSY` and `fetch_topic_when_free` waits (`backoff_ms`, 50 ms doubling to 1 s) and asks again, up to `PART1_BUSY_TRIES` = 100 times
+  (Deviation 26). Every other error is still fatal (exit 1). With 300 simultaneous clients all 300 now finish.
 
 ### 4.2 Case 1 with a fault and restart
 
@@ -854,7 +878,7 @@ Real run (`p = 0.01`, seed 1001, a 3.75 MB topic): 9 attempts, 14 241 917 data b
 
 ### 4.3 Case 2: a fault, RESUME, validation, and a client `kill -9` + restart
 
-Server `serve_client` (`Part2_Case2/server.c:227`) installs the fault state and the `on_progress` hook (`:84`), reads the first message and dispatches: `MSG_GET` -> `handle_get` (`:127`),
+Server `serve_client` (`Part2_Case2/server.c:234`) installs the fault state and the `on_progress` hook (`:84`), reads the first message with `conn_recv_request` and dispatches: `MSG_GET` -> `handle_get` (`:127`),
 `MSG_RESUME` -> `handle_resume` (`:178`), anything else -> ERROR 400.
 
 **First connection (phase 1).**
@@ -877,7 +901,8 @@ It cuts the connection. The client's `recv` returns 0 -> `RX_LOST` -> `ATT_RETRY
 6. `C: run_attempt`: `can_resume` (`:235`: checkpoint with a file name) -> `start_with_resume` (`:377`): the offset is `checkpoint_offset` (`:248`) = `stat(<name>.part).st_size` (or the size of the
    final file if the file was completed and the next FILE_HDR never arrived: `complete = 1`). Builds `RESUME(session_id, file_index, offset, topic, name)`, sends it, expects `RESUME_OK`, and checks that it echoes the
    same `(file_index, offset)`.
-7. `S: handle_resume` (`:178`): `dec_resume`, `topic_find_or_rescan`, `session_validate_resume(...)` (the 5 checks). `rc > 0` -> `reject_resume` (`:159`: sends `RESUME_REJECT(reason)`, status "REJECT", logs
+7. `S: handle_resume` (`:178`): `dec_resume`; an ALL-ZERO session id is refused with `ERROR 400` (`:192-199`; `session_create` never hands out id 0,
+   but a zeroed `.session` looks like one, and two such clients must not share one adopted record; Enhanced already did this); `topic_find_or_rescan`, `session_validate_resume(...)` (the 5 checks). `rc > 0` -> `reject_resume` (`:159`: sends `RESUME_REJECT(reason)`, status "REJECT", logs
    `RESUME_REJECT`); `rc < 0` -> ERROR 503. `rc == 0` -> `bind_session`, send `RESUME_OK(file_index, offset)`, log `RESUME_OK`, `serve_topic(c, t, id, file_index, offset, 0)` (no TOPIC_BEGIN) - this sends
    `FILE_HDR(start_offset = offset)`, only the missing bytes (sendfile reads from that offset), then the later files and `TOPIC_END`.
 8. `C: recv_file` with `start_offset > 0`: `reopen_part` (`transfer.c:454`) checks the `.part` is at least `start_offset` long, `ftruncate`s to exactly `start_offset`, appends. No stored byte is received again.
@@ -899,42 +924,47 @@ The server answered, so it is not overloaded. A reject counts toward the no-prog
 
 ### 4.4 Case 2 Enhanced: MANIFEST, K workers, FETCH, a fault and re-queue
 
-Server side: `enhanced_serve` (`Part2_Case2_Enhanced/server.c:388`) -> `serve_first` (`:350`), which dispatches on the first message: `MSG_MANIFEST_REQ` -> `serve_manifest` (`:124`), `MSG_FETCH` ->
-`serve_fetches` (`:316`), else ERROR 400.
+Server side: `enhanced_serve` (`Part2_Case2_Enhanced/server.c:397`) -> `serve_first` (`:359`), which dispatches on the first message: `MSG_MANIFEST_REQ` -> `serve_manifest` (`:124`), `MSG_FETCH` ->
+`serve_fetches` (`:316`), else ERROR 400. Both `serve_first` and the FETCH loop read with `conn_recv_request`.
 
 **Step 1: MANIFEST (client `enh_fetch_manifest`, `client.c:386`).**
 
-1. `main` (`client.c:1042`) -> `run` (`:894`) loop. `enh_fetch_manifest` first loads any existing `.session`: `had_session = (ckpt_load == 0 && topic matches)`.
+1. `main` (`client.c:1062`) -> `run` (`:914`) loop. `enh_fetch_manifest` first loads any existing `.session`: `had_session = (ckpt_load == 0 && topic matches)`.
 2. `manifest_attempt` (`:310`): short connection, `MANIFEST_REQ(topic, K)`, `recv_msg` up to 64 MiB, `dec_manifest` (validates every name and that sizes sum to `total_bytes`). Retries with back-off if the connection fails or 503.
 3. `S: serve_manifest` (`server.c:124`): `dec_manifest_req`; K must be 1..16 (policy lives here, not in the decoder); `topic_find_or_rescan`; `session_create(t, 1, sid)` (Enhanced: allocates `sent_off[]`);
    `enc_manifest_alloc`, `conn_send`; then marks the session `INTERRUPTED` until the first FETCH (so an unused session does not pin a slot). The connection then ends.
 4. Client picks the session id: keep the OLD id if `had_session`, otherwise the manifest's id; saves `.session` with `k` (`ckpt_save`).
 
-**Step 2: queue (`enh_build_queue`, `client.c:462`).** For every file `i`: if a `.session` existed and the final file has the manifest size -> done (and any stale `.part` is unlinked); if a `.part` exists with size
+**Step 2: queue (`enh_build_queue`, `client.c:482`).** For every file `i`: if a `.session` existed and the final file has the manifest size -> done (and any stale `.part` is unlinked); if a `.part` exists with size
 <= file size -> queue `(i, part size)`; otherwise queue `(i, 0)` and remove an untrusted `.part` (an adopted session skips check 5, so foreign bytes could otherwise creep in). Without a previous `.session`
-everything is fetched from 0 and stale files are overwritten, never trusted.
+everything is fetched from 0 and stale files are never trusted. This is enforced in `enh_fetch_manifest` (`client.c:436-456`): on a
+fresh start the client DELETES every manifest file and every `*.part` in the output folder BEFORE it writes `.session`
+(Deviation 27). Reason: once `.session` exists, a restarted client trusts every complete file of the right size, so killing the
+client in its first second used to leave stale same-size files that the next run accepted (73 corrupted files in the review's test).
 
 **Step 3: K workers.**
 
 Each worker repeatedly: pop an item, make sure it has a connection, send `FETCH(session id, idx, off, topic, name)`, receive `FILE_HDR` + bytes + `FILE_END`. One FETCH is outstanding per connection and is never pipelined
 (Deviation 13; reason in Q27). The server's loop `serve_fetches` (`server.c:316`) answers one at a time: `serve_one_fetch` (`:262`): `dec_resume`, rejects an all-zero id, rejects a FETCH for a different session than this
 connection's, `topic_find_or_rescan`, `session_validate_resume(..., enhanced = 1)` (reject -> `RESUME_REJECT`, connection stays open: `reject_fetch`, `:217`), `FETCH_RESUME` event if `offset > 0`, `send_file_range`.
-`after_send` (`:233`): OK -> `session_all_sent` -> `DONE`; fault/peer/io error -> session `INTERRUPTED`, stop. The loop ends on `NET_EOF` (the client closed because its queue is empty; status stays "OK").
+`after_send` (`:233`): OK -> `session_all_sent` -> `DONE`; fault/peer/io error -> session `INTERRUPTED`, stop. The loop ends on `NET_EOF` (the client closed because its queue is empty; status stays "OK") or `NET_ERR` (status "PEER_LOST"). In both
+cases, if the topic is not fully sent (`!session_all_sent`) the session is set `INTERRUPTED` (`server.c:330-346`), so a killed or DNF client
+no longer pins a slot ACTIVE for 300 s (256 such sessions used to fill the table); another live connection's next chunk makes it ACTIVE again.
 
-#### Threads engine (`enh_run_threads`, `client.c:786`)
+#### Threads engine (`enh_run_threads`, `client.c:806`)
 
-- Starts K `worker_main` threads (`:758`). `worker_main`: `while (workq_pop(...)) { ensure_conn; do_item }`; `close_conn` at the end. Connections are opened lazily, so a worker that never gets an item never connects.
-- `ensure_conn` (`:592`): if it has a socket but `conn_reusable` (`:543`, a `MSG_PEEK|MSG_DONTWAIT` recv: EAGAIN means alive and silent) says the server closed it while idle, reopen without counting a failure; else
+- Starts K `worker_main` threads (`:778`). `worker_main`: `while (workq_pop(...)) { ensure_conn; do_item }`; `close_conn` at the end. Connections are opened lazily, so a worker that never gets an item never connects.
+- `ensure_conn` (`:612`): if it has a socket but `conn_reusable` (`:563`, a `MSG_PEEK|MSG_DONTWAIT` recv: EAGAIN means alive and silent) says the server closed it while idle, reopen without counting a failure; else
   `enh_connect` (`:209`).
-- `fetch_item` (`:617`): encode and send FETCH, `recv_expect(FILE_HDR)`, check that the reply matches the request AND the manifest (index, offset, size, name), then `recv_file` (RX_PART).
-- `do_item` (`:698`): `RX_OK` -> `enh_file_completed`, `workq_done`, `streak = 0`. `RX_LOST` or `503` -> `connection_failed`. `RX_REJECT` -> `handle_reject`. Anything else -> fatal.
-- **Fault and re-queue**: `connection_failed` (`:559`): `close_conn`; push `(idx, enh_part_offset)` back to the queue FIRST; then `workq_done`; update this worker's `streak` (any stored byte resets it);
+- `fetch_item` (`:637`): encode and send FETCH, `recv_expect(FILE_HDR)`, check that the reply matches the request AND the manifest (index, offset, size, name), then `recv_file` (RX_PART).
+- `do_item` (`:718`): `RX_OK` -> `enh_file_completed`, `workq_done`, `streak = 0`. `RX_LOST` or `503` -> `connection_failed`. `RX_REJECT` -> `handle_reject`. Anything else -> fatal.
+- **Fault and re-queue**: `connection_failed` (`:579`): `close_conn`; push `(idx, enh_part_offset)` back to the queue FIRST; then `workq_done`; update this worker's `streak` (any stored byte resets it);
   if `streak >= max_retries` -> `stop_run(gave_up)`; else sleep `backoff_ms`. ONLY this worker sleeps; the other K-1 keep fetching, and one of them may pick up the re-queued item immediately (so `reconnects` can be lower
   than the number of faults, Deviation 24). The next `FETCH` for this file is sent with `offset = .part size`, passes validation (check 5 per file) and the server sends only the missing bytes.
-- `handle_reject` (`:664`): reason 4/5 (and `off > 0`): `unlink_part`, re-queue `(idx, 0)`, same connection stays open. Reason 1/2/3 (topic changed): `stop_run(restart)` -> `run` (`client.c:894`) removes partials
+- `handle_reject` (`:684`): reason 4/5 (and `off > 0`): `unlink_part`, re-queue `(idx, 0)`, same connection stays open. Reason 1/2/3 (topic changed): `stop_run(restart)` -> `run` (`client.c:914`) removes partials
   and `.session` and starts again from step 1 (at most `max_retries` restarts). Unexpected reason -> fatal.
 - `stop_run` (`:295`): set the flag under `e->mu` and `workq_abort`, so every worker's next `pop` returns 0.
-- End: `pthread_join` of all workers (`:819`) on every path; `finish_success` (`client.c:976`): `verify_topic` (`:945`: every file `done[]` and size on disk equals the manifest; counts and byte total match), `ckpt_clear`, summary.
+- End: `pthread_join` of all workers (`:839`) on every path; `finish_success` (`client.c:996`): `verify_topic` (`:965`: every file `done[]` and size on disk equals the manifest; counts and byte total match), `ckpt_clear`, summary.
 
 #### Poll engine (`enh_run_poll`, `client_poll.c:1133`)
 
@@ -978,10 +1008,10 @@ can return any number of bytes and the rest may arrive after other sockets were 
 
 | Where | Variable | Protected by | Notes |
 |---|---|---|---|
-| `server_core.c:70-72` | `g_active`, `g_main_done`, `g_listen_fd` | `g_mu` | signalled through `g_cv` |
-| `server_core.c:75` | `g_conns`, `g_busy`, `g_data_bytes`, `g_wire_bytes`, `g_faults` (totals for the summary) | `g_mu` | updated in `finish_conn` |
-| `server_core.c:77-78` | `g_stopping`, `g_next_conn_id` | C11 atomics | read without the lock |
-| `server_core.c:81` | `g_map` (`topic_map_t`) | see topic_map | |
+| `server_core.c:72-74` | `g_active`, `g_main_done`, `g_listen_fd` | `g_mu` | signalled through `g_cv` |
+| `server_core.c:77` | `g_conns`, `g_busy`, `g_data_bytes`, `g_wire_bytes`, `g_faults` (totals for the summary) | `g_mu` | updated in `finish_conn` |
+| `server_core.c:79-80` | `g_stopping`, `g_next_conn_id` | C11 atomics | read without the lock |
+| `server_core.c:83` | `g_map` (`topic_map_t`) | see topic_map | |
 | `topic_map.h:37-44` | `topics`, `n_topics` | `lock` (rwlock): readers = lookups, writer = swap | held for one bsearch or two stores |
 | `topic_map.h` | re-scan, `last_rescan_ns` | `rescan_mu` | serialises re-scans |
 | `topic_t` and its `files[]` | everything | nothing - immutable after publication | pointer-stability rule (Deviation 3) |
@@ -1004,16 +1034,16 @@ can return any number of bytes and the rest may arrive after other sockets were 
 - Locks are never nested in a way that can deadlock: `session.c` takes only `table_mu` and calls no other module while holding it; `topic_map.c` takes `rescan_mu` then `lock` (always in that order, never the reverse);
   `server_core.c` holds `g_mu` only for counter updates and `cond_wait`; `log.c` takes its mutex last. The slow work (disk reads, `qsort`, `malloc`) is done outside locks.
 - No lock is held across network or disk I/O. The rwlock writer holds for two stores.
-- Condition variables are always used in a `while (condition)` loop (`workq.c:116`, `server_core.c:493,622`), so spurious wake-ups are harmless.
+- Condition variables are always used in a `while (condition)` loop (`workq.c:116`, `server_core.c:596,725`), so spurious wake-ups are harmless.
 - Thread sanitizer builds (`make SAN=thread`) and unit tests (`make -C tests/unit run`) are part of the build gate.
 
 ### 5.3 How fds and memory are released on fault paths
 
-- Server: a fault calls `conn_abort` (`server_core.c:147`): `shutdown_close` and `fd = -1`. `finish_conn` closes only if `fd >= 0` and ALWAYS frees the `conn_t` and decrements `g_active`; that is on every
+- Server: a fault calls `conn_abort` (`server_core.c:149`): `shutdown_close` and `fd = -1`. `finish_conn` closes only if `fd >= 0` and ALWAYS frees the `conn_t` and decrements `g_active`; that is on every
   path out of `run_conn` (served, faulted, error, refused). `send_file_range` closes the source file and frees the fallback buffer on every path (`transfer.c:335-337`). The fault state is on the stack and the hook
-  pointers are cleared before return. `recv_msg` frees its buffer on error and the callers free the payload (`free(payload)` is safe because it is initialised to NULL).
-- Client: `recv_file` frees its buffer and `close`s the output on every failure path, leaving the `.part` on disk on purpose (it is the checkpoint). `enh_run_threads` joins every started worker on every path (`:819`),
-  `workq_destroy` is called only after all threads are joined (`free_pass`, `client.c:879`); `enh_run_poll` calls `cleanup` (`client_poll.c:1119`) and frees `slots` and `buf`. `manifest_free` / `free(e->done)`.
+  pointers are cleared before return. `recv_msg` and `conn_recv_request` free their buffer on error and the callers free the payload (`free(payload)` is safe because it is initialised to NULL).
+- Client: `recv_file` frees its buffer and `close`s the output on every failure path, leaving the `.part` on disk on purpose (it is the checkpoint). `enh_run_threads` joins every started worker on every path (`:839`),
+  `workq_destroy` is called only after all threads are joined (`free_pass`, `client.c:899`); `enh_run_poll` calls `cleanup` (`client_poll.c:1119`) and frees `slots` and `buf`. `manifest_free` / `free(e->done)`.
 - Shutdown: `server_run` frees the map only if no worker is left (`left == 0`, `:642`) and destroys the condition variable only then, because detached workers still hold pointers into them.
 
 ---------------------------------------------------------------------------
@@ -1023,7 +1053,7 @@ can return any number of bytes and the rest may arrive after other sockets were 
 ### 6.1 Where the CSV rows come from
 
 Enabled by environment variables only (no hard-coded path): `FDS_LOG=<file.csv>` (one row per server connection / per client run), `FDS_EVENTS=<file.csv>` (server events), `FDS_RUN_ID`, `FDS_CLIENT_ID`.
-`finish_conn` (`server_core.c:213`) writes the server row at the END of each connection; each client writes one row just before exit (`write_csv`/`report`).
+`finish_conn` (`server_core.c:215`) writes the server row at the END of each connection; each client writes one row just before exit (`write_csv`/`report`).
 
 **Server connection CSV** (`log.h:14-16`): `run_id,case,mode,p,seed,conn_id,kind,session_id,topic,k,peer,start_ns,end_ns,start_wall_ns,data_bytes,wire_bytes,chunks,files_completed,faulted,status`.
 
@@ -1049,7 +1079,7 @@ Event rows: `FAULT,...,21,0,22,573612,"prefix=6951/18071"` (file 21, chunk began
 ### 6.2 data_bytes vs wire_bytes
 
 - `data_bytes`: file payload bytes handed to the socket (what `sendfile` returned, including a fault's partial chunk). Updated in `account` (`transfer.c:175`).
-- `wire_bytes`: `data_bytes` + every header/control byte sent. Control messages are added in `conn_send` (`server_core.c:170`); `account` adds the data. In the run above 573 612 data vs 575 086 wire: the difference of 1 474 is
+- `wire_bytes`: `data_bytes` + every header/control byte sent. Control messages are added in `conn_send` (`server_core.c:172`); `account` adds the data. In the run above 573 612 data vs 575 086 wire: the difference of 1 474 is
   headers (TOPIC_BEGIN, FILE_HDRs, FILE_ENDs).
 - Client side: `data_bytes_rx` counts file bytes received and written (including re-received ones in Case 1); `wire_bytes_rx` counts every byte read (`recv_msg` adds the header + payload, `recv_file` adds raw bytes).
 - Consistency check we use (and quote in the viva): sum of server `wire_bytes` == sum of client `wire_bytes_rx` (3 769 006 on both sides in the Case 2 run; 3 775 322 on both in the Enhanced run), and in Case 2/Enhanced sum of
@@ -1058,7 +1088,7 @@ Event rows: `FAULT,...,21,0,22,573612,"prefix=6951/18071"` (file 21, chunk began
 ### 6.3 Server-side aggregate throughput (the assignment's Part I metric)
 
 Definition (design §6.7, Deviation 21): `throughput = Σ data_bytes of all connections / (max end_ns − min start_ns)` over the connections of a run, measured with the server's single `CLOCK_MONOTONIC` clock.
-`start_ns` is taken when the connection is accepted (`server_core.c:356`), `end_ns` in `finish_conn` (`:225`) AFTER `drain_until_peer_closes`, so the interval includes the delivery of the last bytes. We use the server clock because
+`start_ns` is taken when the connection is accepted (`server_core.c:459`), `end_ns` in `finish_conn` (`:225`) AFTER `drain_until_peer_closes`, so the interval includes the delivery of the last bytes. We use the server clock because
 the client machines' clocks are not precisely synchronised; client-side figures are only secondary (per-client completion time).
 
 ### 6.4 `tools/exp/analyze.py`
@@ -1081,7 +1111,7 @@ Design §4.4 predictions (`predictions`, `:209`; needs `--dataset` to know the r
   `E = T + (1/P) Σ_j q^(j−1) p (S_(j−1) + (c_j − 1)/2)` (`:231-239`); `pred_dnf_run_prob = 1 − (1 − (1 − P)^100)^n_clients` (probability that some client hits 100 failed attempts).
 - Case 2 / Enhanced: `pred_faults = n_clients · N · p / q`; `pred_overhead_pct = 0`.
 
-It also prints a consistency note when `|faults − reconnects| > max(2, 10%)` (`:384-387`); see section 10 on why that note is not meaningful for Enhanced. Outputs: `Part1_summary.csv`, `Part2_summary.csv`, `Buffers_summary.csv`, `all_runs.csv`, `summary.md`.
+It also prints a consistency note when `|faults − reconnects| > max(2, 10%)` (`:382-391`); Enhanced runs are skipped because their `reconnects` can legitimately be lower (Deviation 24). Outputs: `Part1_summary.csv`, `Part2_summary.csv`, `Buffers_summary.csv`, `all_runs.csv`, `summary.md`.
 
 ### 6.5 What the numbers should show (so you can explain results)
 
@@ -1139,10 +1169,13 @@ Mirrors design §9 plus the deviations. Format: decision -> alternative -> why w
 | 18 | Back-off counter = consecutive attempts that received no file data; after a cut that received data wait 50 ms | Doubling between all attempts | After an injected fault the server is healthy; long waits would only inflate completion time. |
 | 19 | Case 2/Enhanced can only resume files whose names are <= 250 bytes | - | `<name>.part` must fit Linux's 255-byte name limit. Known limitation. |
 | 20 | Fault RNG state = `splitmix64(splitmix64(seed) ^ conn_id)` via `seed48_r` | `srand48_r(seed ^ conn_id)` | Repetitions with seeds 1001, 1002, ... shared 30 of 32 per-connection seeds. |
-| 21 | Connection end time taken after `shutdown(SHUT_WR)` + waiting (<= 5 s) for the client's close | End at last `send` | `send`/`sendfile` return when data is queued, which inflated throughput ~10% at N = 1. |
+| 21 | Connection end time taken after `shutdown(SHUT_WR)` + waiting (<= 5 s, absolute deadline) for the client's close | End at last `send` | `send`/`sendfile` return when data is queued, which inflated throughput ~10% at N = 1. |
 | 22 | Adopted sessions skip check 5 | Check 5 whenever the id is known | The server has no record of what was sent before it adopted the id; checking would wrongly reject a valid `.part`. |
 | 23 | Third optional Enhanced argument selects `threads` or `poll` (`io=` prefix accepted) | `[connections] [max_retries]` | The "non-blocking socket" variant of §6.1. |
-| 24 | In Enhanced, `reconnects` may be lower than the number of faults | Reconnects == faults | A re-queued file is often taken by another worker still connected. Consistency check: server data bytes = client data bytes = topic x clients. |
+| 24 | In Enhanced, `reconnects` may be lower than the number of faults | Reconnects == faults | A re-queued file is often taken by another worker still connected. Consistency check: server data bytes = client data bytes = topic x clients (`analyze.py` skips the faults-vs-reconnects note for Enhanced). |
+| 25 | Servers read requests with `conn_recv_request`: absolute 30 s deadline, only the four request types, payload <= 512 bytes, checked before allocation | `recv_msg` under `SO_RCVTIMEO` | A one-byte-per-29-s peer could hold a thread for days; a 64 MiB "MANIFEST" request was buffered. |
+| 26 | Part I client retries `ERROR 503` (back-off, <= 100 tries) | Any error -> exit 1 | 503 means "busy", not a failed transfer; 44 of 300 simultaneous clients used to exit 1. |
+| 27 | Enhanced fresh start deletes old manifest files and `*.part` BEFORE writing `.session`; a FETCH connection that ends early leaves the session INTERRUPTED | Overwrite stale files as they are fetched | A client killed in its first second left stale same-size files that the next run trusted (73 corrupted); abandoned sessions pinned slots ACTIVE for 300 s. |
 
 ---------------------------------------------------------------------------
 
@@ -1174,10 +1207,10 @@ switches the socket back to blocking.
 
 **Q6. Why thread-per-client and not a thread pool?**
 Part II requires one thread per client; it is the simplest correct design for tens of clients; a pool adds queueing delay for clients beyond the pool size. We cap threads at 256 (`FDS_MAX_THREADS`) and answer
-`ERROR 503` beyond that (`server_core.c:378`), so resources stay bounded. An event loop would only be worth it for thousands of connections.
+`ERROR 503` beyond that (`server_core.c:481`), so resources stay bounded. An event loop would only be worth it for thousands of connections.
 
 **Q7. What did you find comparing single- and multi-threaded servers?**
-Single mode (`server_core.c:362`) serves one client at a time from the main thread; the other clients' connections sit in the listen backlog, so aggregate throughput stays about flat as N grows and per-client completion
+Single mode (`server_core.c:465`) serves one client at a time from the main thread; the other clients' connections sit in the listen backlog, so aggregate throughput stays about flat as N grows and per-client completion
 time grows linearly. Multi mode overlaps transfers (one detached thread each), so aggregate throughput rises with N until the network or disk saturates. The exact numbers come from `Results/` (produced by
 `tools/exp/run_part1.sh` and `analyze.py`); do not quote numbers you have not looked up. The mechanism is what the viva asks.
 
@@ -1249,19 +1282,19 @@ It takes an explicit offset (so resume is natural) and returns how many bytes it
 
 **Q22. Why `clock_gettime(CLOCK_MONOTONIC)`?**
 Intervals must not be affected by NTP steps or someone changing the date; `CLOCK_REALTIME` can jump backwards, giving negative or wrong durations. `now_ns` (`util.c:146`) is monotonic and used for every measurement and for
-deadlines (also the condition-variable time-outs, `pthread_condattr_setclock`, `server_core.c:530`). `wall_ns` is recorded only for rough alignment between machines.
+deadlines (also the condition-variable time-outs, `pthread_condattr_setclock`, `server_core.c:633`). `wall_ns` is recorded only for rough alignment between machines.
 
 **Q23. What does `SO_REUSEADDR` do?**
 It lets `bind()` succeed on a port even if earlier connections on it are still in `TIME_WAIT`, so we can restart the server immediately between experiments (`net.c:117`). It does not allow two live listeners on the same port.
 
 **Q24. What is SIGPIPE and how do you avoid it?**
 Writing to a socket whose peer has closed raises `SIGPIPE`, which kills the process by default. Fault injection creates closed connections on purpose. So every `send` uses `MSG_NOSIGNAL` (`sendall`, `copy_piece`, the poll engine's
-`send`), and the server also runs `signal(SIGPIPE, SIG_IGN)` (`server_core.c:577`) because `sendfile` cannot take that flag.
+`send`), and the server also runs `signal(SIGPIPE, SIG_IGN)` (`server_core.c:680`) because `sendfile` cannot take that flag.
 
 **Q25. Explain graceful shutdown.**
 SIGINT/SIGTERM are blocked in all threads before any thread is created; one dedicated thread waits in `sigwait`. On a signal it sets `g_stopping`, calls `shutdown()` on the listening socket (which wakes the blocked `accept`
 with an error), the main thread stops accepting, waits up to 5 s for `g_active` to reach 0 (condition variable on the monotonic clock), prints a summary, closes the CSV files and exits 0. If the main thread is itself serving a
-client in single mode, the signal thread forces `_exit(0)` after 6 s so a shutdown never hangs (`server_core.c:457-510`, `616-648`). Running logic in a normal thread instead of a signal handler means we may use mutexes and `malloc`.
+client in single mode, the signal thread forces `_exit(0)` after 6 s so a shutdown never hangs (`server_core.c:560-613`, `719-751`). Running logic in a normal thread instead of a signal handler means we may use mutexes and `malloc`.
 
 **Q26. What if two threads call `accept` or `topic_find` at the same time?**
 Only the main thread calls `accept`. `topic_find` is called from many worker threads under a read lock (concurrent readers); a re-scan takes `rescan_mu` to serialise re-scans, builds the new array outside the rwlock and
@@ -1284,12 +1317,17 @@ downloaded tree with the dataset byte for byte. The server counts what `sendfile
 
 **Q30. Why does the server do the "drain" after the last message?**
 Because `send`/`sendfile` return when data is queued in the kernel, not when the client has it. Taking `end_ns` there would leave the last MB of socket buffer outside the measured interval and overstate throughput by about
-10% at N = 1. `drain_until_peer_closes` (`server_core.c:270`) half-closes and waits (max 5 s) for the client's own close, which arrives about one RTT after the client read the last message (Deviation 21). It also makes the final
+10% at N = 1. `drain_until_peer_closes` (`server_core.c:292`) half-closes and waits (max 5 s) for the client's own close, which arrives about one RTT after the client read the last message (Deviation 21). It also makes the final
 `close` a clean FIN.
 
-**Q31. What is the 256-thread cap and what does the client do on ERROR 503?**
-`handle_new_conn` increments `g_active` under `g_mu` before creating a thread; if it is already 256, or `pthread_create` fails, the main thread sends `ERROR 503 "server busy"` and closes (`server_core.c:377-398`, `refuse_busy`
-`:310`). Part II clients treat 503 as a retriable failure (back off and try again); the session table does the same when all 256 slots are fresh ACTIVE sessions. Part I clients treat it as a fatal error (exit 1).
+**Q31. What is the 256-thread cap, what happens with more than 256 clients, and what does the client do on ERROR 503?**
+`handle_new_conn` increments `g_active` under `g_mu` before creating a thread; if it is already 256, or `pthread_create` fails, the main thread sends `ERROR 503 "server busy"` and closes (`server_core.c:480-501`, `refuse_busy`
+`:413`). The 257th client is therefore refused, not queued, and nothing is allocated for it. EVERY client now treats 503 as "busy, try again": the Part II clients always did (back off and retry, counted against `max_retries`), and since
+commit 57ff9fb the Part I client does too (`fetch_topic_when_free`, `Part1/client.c:329`: back-off, at most 100 tries, then exit 1; Deviation 26). Before that, 44 of 300 simultaneous Part I clients exited 1; now all 300 finish. The session
+table has the same idea: when all 256 slots are fresh ACTIVE sessions, `session_create` fails and the server answers 503 "session table full".
+
+**Q31b. What if a client sends garbage, a huge length, or sends one byte at a time?**
+All three are handled by `conn_recv_request` (`server_core.c:346`, Deviation 25), which every server uses for requests. *Garbage*: `hdr_decode` rejects a wrong magic/version/type -> `NET_PROTO` -> `ERROR 400`, connection closed. *Huge length*: the header is checked before any allocation: only GET, RESUME, MANIFEST_REQ and FETCH are accepted and `payload_len` must be <= `FDS_MAX_REQUEST_PAYLOAD` = 512 bytes (the largest real request is 349), so a 64 MiB "MANIFEST" is refused at once with nothing buffered (before, three such connections added 190 MB of memory). *Slow drip*: the whole request (header + payload) must arrive within an ABSOLUTE 30 s deadline (`FDS_SRV_TIMEOUT_S`, `now_ns()` based, `poll()` on the time left); `SO_RCVTIMEO` alone restarts on every byte, so a peer sending one byte every 29 s could hold a thread for days, and in `single` mode the whole server. The same idea protects the end of a transfer: `drain_until_peer_closes` waits at most 5 s in total. *Unknown topic keys* only cost a directory re-scan at most once per second (section 3.5).
 
 **Q32. What happens if the file list of a topic changes while the server runs?**
 A topic is an immutable snapshot. New topic folders are picked up by a re-scan (when an unknown topic is requested, at most once per second); files added to an existing topic are not. The server sends the sizes from the map,
@@ -1328,7 +1366,7 @@ writes the files to `output_dir/<topic exactly as typed>/` (Deviation 4), becaus
 leaks; `make SAN=thread` runs ThreadSanitizer to find data races. The shipped `make` has no `-Werror` (Deviation 5) so that a new warning on the grader's compiler cannot stop the executables from being built.
 
 **Q40. Walk me through what happens between `connect()` and the first byte of file data in Case 2.**
-`tcp_connect` -> `set_timeouts`, `set_nodelay` -> `start_with_get`: `enc_get`, `send_encoded`; server `accept4` -> `handle_new_conn` -> `serve_client` -> `recv_msg` -> `handle_get` -> `topic_find_or_rescan` ->
+`tcp_connect` -> `set_timeouts`, `set_nodelay` -> `start_with_get`: `enc_get`, `send_encoded`; server `accept4` -> `handle_new_conn` -> `serve_client` -> `conn_recv_request` -> `handle_get` -> `topic_find_or_rescan` ->
 `session_create` -> `serve_topic`: `TOPIC_BEGIN` (with `MSG_MORE`) then `FILE_HDR #0` (with `MSG_MORE`) then `sendfile`. Client: `recv_expect(TOPIC_BEGIN)` -> `save_checkpoint` (`.session` with the session id) -> `recv_topic` ->
 `recv_file` -> `on_file_hdr` writes `.session` with file #0 -> `open(.part)` -> `recv`/`write` loop.
 
@@ -1357,15 +1395,14 @@ A good drill: run `FDS_LOG=/tmp/s.csv FDS_EVENTS=/tmp/e.csv` for a Case 2 server
 
 ## 10. Known loose ends (things that are slightly inconsistent)
 
-Be ready to be honest about these if asked; none affects correctness of the transfers.
+Be ready to be honest about these if asked; none affects correctness of the transfers. (Two items of earlier
+versions of this list are fixed and removed: the stale `seed ^ conn_id` header comments, and the `analyze.py`
+faults-vs-reconnects note for Enhanced runs, which now skips Enhanced, Deviation 24.)
 
-1. **Stale comments about seeding.** The header comments in `Part2_Case1/server.c:34` and `:199`, `Part2_Case2/server.c:41`, and `Part2_Case2_Enhanced/server.c:52` and `:419` still say the generator is seeded with
-   `seed ^ conn_id`. The actual code (`common/fault.c:92-105`, Deviation 20) uses a splitmix64 hash. The common code and DEVIATIONS.md are right.
-2. **`analyze.py` consistency note.** `tools/exp/analyze.py:384-387` flags runs where `|faults − reconnects|` is large. That is correct for Case 1 and Case 2 but not for Enhanced (Deviation 24: Enhanced `reconnects` can be
-   lower than the number of faults), so Enhanced runs may produce false notes in `summary.md`.
-3. **Prediction formula.** The design §4.4 formula for expected Case 1 chunks transmitted is `(1−p)(1−(1−p)^N)/(p(1−p)^N)` and the code (`analyze.py:226`) uses `(1−P)/(p·P)`. They differ by the factor `(1−p)`: the code counts the
+1. **Prediction formula.** The design §4.4 formula for expected Case 1 chunks transmitted is `(1−p)(1−(1−p)^N)/(p(1−p)^N)` and the code (`analyze.py:226`) uses `(1−P)/(p·P)`. They differ by the factor `(1−p)`: the code counts the
    draw of the faulted chunk (a partial chunk is sent since Deviation 9), the design formula did not. The byte-level overhead prediction (`pred_overhead_pct`) is exact.
-4. **`sendfile` and SIGPIPE** rely on a process-wide `SIG_IGN` set in `server_run` (`server_core.c:577`). That is fine for our programs, but any new caller of `send_file_range` outside `server_run` must also ignore SIGPIPE
-   (documented at `transfer.c:13-16`).
-5. **Mixed return convention** of `session_validate_resume`: 0 = OK, 1..5 = reject reason, -1 = table full. The callers test `rc < 0` before `rc > 0` (`Part2_Case2/server.c:198-205`).
-6. **Known limitation (Deviation 19):** Case 2 and Enhanced cannot resume files whose name is longer than 250 bytes (`<name>.part` must fit in 255).
+2. **`sendfile` and SIGPIPE** rely on a process-wide `SIG_IGN` set in `server_run` (`server_core.c:680`). That is fine for our programs, but any new caller of `send_file_range` outside `server_run` must also ignore SIGPIPE
+   (documented at `transfer.c:13-16` and in the comment block at `transfer.h:27-32`).
+3. **Mixed return convention** of `session_validate_resume`: 0 = OK, 1..5 = reject reason, -1 = table full. The callers test `rc < 0` before `rc > 0` (`Part2_Case2/server.c:204-213`).
+4. **Known limitation (Deviation 19):** Case 2 and Enhanced cannot resume files whose name is longer than 250 bytes (`<name>.part` must fit in 255).
+5. **Case 1 is expected to give up on large topics at moderate p** (not a bug): an attempt of N chunks succeeds with probability (1−p)^N, so for example `many`/`big` at p = 0.05 end with exit 2 (`max_retries` = 100). Say so with the formula; Case 2 and Enhanced are the answer to it.

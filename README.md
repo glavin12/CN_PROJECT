@@ -73,7 +73,9 @@ Ports, paths and IPs are never hard-coded; they come only from the arguments bel
 ./server <port> <topics_root_dir> [single|multi]        # default: multi
 ./client <server_ip> <server_port> <topic> <output_dir>
 ```
-`single` serves clients one after another; `multi` uses a thread per client.
+`single` serves clients one after another; `multi` uses a thread per client (at most 256 at a time). A
+client that is refused with `ERROR 503` (server busy) waits with back-off and asks again, up to 100 times;
+every other error is fatal (exit 1).
 
 ```
 # terminal 1                                   # terminal 2
@@ -87,7 +89,9 @@ cd Part1                                       cd Part1
 ./server <port> <topics_root_dir> <failure_probability> [seed]
 ```
 `failure_probability` (p) is a real number in [0, 1]. The optional `seed` makes the fault
-positions repeatable. The server is multi-threaded in all Part II cases.
+positions repeatable. The server is multi-threaded in all Part II cases. A server reads each request within an absolute
+30 s deadline and accepts only small requests (at most 512 bytes), so a stalled or hostile peer cannot hold a
+thread or make it allocate memory.
 
 ### Part II Case 1 (`Part2_Case1/`)
 
@@ -131,7 +135,8 @@ cd Part2_Case2_Enhanced                        cd Part2_Case2_Enhanced
 The client writes to `<output_dir>/<topic exactly as typed>/` (created with `mkdir -p`).
 When it succeeds, that folder holds **only** the topic's files: no `.part`, `.session` or
 temporary files. Case 2 and Enhanced keep `<name>.part` and `.session` files while a transfer is
-unfinished; they are what makes a restart of the client resumable.
+unfinished; they are what makes a restart of the client resumable. A fresh Enhanced run (no `.session`) first
+deletes any old file of the topic's names and any `*.part` in that folder, so stale files are never trusted.
 
 | Exit code | Meaning |
 |---|---|
@@ -195,7 +200,7 @@ Defined in `common/fault.h` / `common/fault.c` (design section 4, deviations 9 a
 ## Testing
 
 ```
-make -C tests/unit run                 # C unit tests of common/ (needs libasan, libubsan)
+make -C tests/unit run                 # C unit tests of common/ (no sanitizer; SAN=address|thread needs the runtimes)
 tests/integration/run_all.sh           # builds everything, then every integration test
 tests/integration/run_all.sh --quick   # skips the slow checks
 tests/integration/run_all.sh --only case2     # one of: build cli part1 case1 case2 enhanced
