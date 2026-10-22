@@ -15,6 +15,10 @@ ifeq ($(SAN),address)
 endif
 ifeq ($(SAN),thread)
   SAN_FLAGS = -fsanitize=thread
+  # TSan sleeps 1 s at process exit by default (atexit_sleep_ms=1000). That
+  # second would be added to every server exit that test_server_core times,
+  # so turn it off (the caller's other TSAN_OPTIONS are kept).
+  export TSAN_OPTIONS := atexit_sleep_ms=0 $(TSAN_OPTIONS)
 endif
 
 CFLAGS  = -std=gnu11 -Wall -Wextra -Werror -O1 -g -pthread -I../../common $(SAN_FLAGS)

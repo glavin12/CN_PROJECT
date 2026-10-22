@@ -427,8 +427,10 @@ def comparison_charts(rows, ref, ref_note, out, made):
             if spread or i == len(pts) - 1:
                 ax.annotate("p=%g" % r["p"], (x, y), textcoords="offset points", xytext=(6, dy),
                             fontsize=7.5, color=INK2)
-    ax.set_xscale("symlog", linthresh=0.1)
-    ax.set_xlim(left=-0.02)
+    # Overheads are 0 (Case 2, Enhanced) or several % and up (Case 1, about
+    # p/(1-p) x 50 %): linear up to 1 %, logarithmic above.
+    ax.set_xscale("symlog", linthresh=1.0)
+    ax.set_xlim(left=-0.2)
     ax.set_ylim(bottom=0)
     ax.set_xlabel("overhead (% redundant of useful bytes)")
     ax.set_ylabel("goodput (MB/s)")

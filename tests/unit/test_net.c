@@ -258,7 +258,9 @@ static void *writer_main(void *arg)
 
     w->rc = 0;
     while (off < w->n && w->rc == 0) {
-        size_t k = FDS_MIN(pieces[i++ % 6], w->n - off);
+        /* FDS_MIN evaluates its arguments twice: no i++ inside it. */
+        size_t piece = pieces[i++ % 6];
+        size_t k = FDS_MIN(piece, w->n - off);
 
         w->rc = sendall(w->fd, w->buf + off, k, off + k < w->n ? MSG_MORE : 0);
         off += k;
