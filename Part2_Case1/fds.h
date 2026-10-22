@@ -30,7 +30,7 @@
 #define FDS_MAX_REQUEST_PAYLOAD   512u
 
 /* ---- Transfer constants ------------------------------------------------ */
-#define FDS_CHUNK_SIZE       65536u    /* file data is sent in 64 KB chunks; one fault draw per chunk */
+#define FDS_CHUNK_SIZE       65536u    /* file data is sent in 64 KB chunks */
 #define FDS_IO_BUF           65536u    /* client receive / write buffer */
 
 /* ---- Server limits and timeouts ---------------------------------------- */

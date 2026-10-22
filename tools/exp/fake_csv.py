@@ -11,8 +11,10 @@ exact CSV columns and formatting of common/log.c (quoted topic, %g for p,
 32-hex session ids, CLOCK_MONOTONIC *_ns with a different base per machine).
 The numbers come from a small model of the real protocols:
   * a 1 Gbit/s server uplink shared fairly by the clients of a run,
-  * one fault draw per 64 KB chunk with probability p; on a fault a random
-    prefix of 0..len-1 bytes of the chunk is sent first (deviation 9),
+  * one fault decision per connection (deviation 28): with probability p the
+    connection is cut at a uniformly random byte of its first request's data
+    (Case 1 the topic, Case 2 the rest of the topic, Enhanced the rest of the
+    first FETCHed file),
   * Case 1 restarts the topic (back-off 50 ms doubling to 1 s, gives up after
     100 attempts = DNF), Case 2 resumes from the byte offset (back-off resets
     after progress, gives up after 20 attempts without progress), Enhanced has
@@ -44,11 +46,11 @@ CLIENT_HDR = ("run_id,case,host,client_id,pid,topic,k,io,start_ns,end_ns,start_w
 RUNS_HDR = ("run_id,sweep,mode,role,n_clients,start_wall_ms,elapsed_s,server_rc,clients_ok,clients_dnf,"
             "clients_timeout,clients_fail,client_rcs,check,note")
 
-QUICK = {"ns": [1, 4], "servers": ["single", "multi"], "ps": ["0", "0.001", "0.01"],
+QUICK = {"ns": [1, 4], "servers": ["single", "multi"], "ps": ["0", "0.3", "0.7"],
          "impls": ["case1", "case2", "enh_K4", "enh_K4_poll"], "reps": 2, "warmup": 1,
          "bufs": ["default", "1048576"], "buf_reps": 1}
 FULL = {"ns": [1, 2, 4, 8, 16, 32], "servers": ["single", "multi"],
-        "ps": ["0", "0.0001", "0.0002", "0.0005", "0.001", "0.002", "0.005", "0.01"],
+        "ps": ["0", "0.1", "0.2", "0.3", "0.5", "0.7", "0.9"],
         "impls": ["case1", "case2", "enh_K1", "enh_K2", "enh_K4", "enh_K8", "enh_K4_poll"], "reps": 5,
         "warmup": 1, "bufs": ["default", "65536", "262144", "1048576", "4194304"], "buf_reps": 3}
 
@@ -204,6 +206,9 @@ class Sim:
         sizes = self.topics[topic]
         T, nf = sum(sizes), len(sizes)
         share = RATE * 0.96 * share_scale / n
+        suffix = [0] * (len(chunks) + 1)     # data bytes from chunk j to the end
+        for x in range(len(chunks) - 1, -1, -1):
+            suffix[x] = suffix[x + 1] + chunks[x][0]
         rcs, t_last = [], 0.0
         for c in labels(n):
             label = c[0]
@@ -225,12 +230,15 @@ class Sim:
                 sent = chunks_sent = files_done = 0
                 faulted = False
                 f_info = None
+                # The connection's one decision: cut at a uniform byte of what it will send.
+                R = suffix[j] - done_in_chunk
+                cut = rng.randrange(R) if R > 0 and p > 0 and rng.random() < p else None
                 while j < len(chunks):
                     ln, fidx, off, last = chunks[j]
                     rem = ln - done_in_chunk
                     chunks_sent += 1
-                    if rng.random() < p:
-                        prefix = rng.randrange(rem)
+                    if cut is not None and cut < sent + rem:
+                        prefix = cut - sent
                         sent += prefix
                         done_in_chunk += prefix
                         f_info = (fidx, off + done_in_chunk, j, sent)
@@ -299,7 +307,7 @@ class Sim:
             data_rx = 0
             workers = [m_end + i * 1e-5 for i in range(k)]
             # per worker: current connection accumulators
-            conn = [dict(start=w + CONNECT, data=0, wire=0, chunks=0, files=0) for w in workers]
+            conn = [dict(start=w + CONNECT, data=0, wire=0, chunks=0, files=0, planned=False) for w in workers]
             workers = [w + CONNECT for w in workers]
             reconnects = 0
             queue = list(range(nf))
@@ -312,11 +320,16 @@ class Sim:
                     workers[wi] += RTT          # FETCH round trip
                     cc = conn[wi]
                     faulted = False
+                    cut = None                  # the connection's one decision, on its first FETCH
+                    if not cc["planned"]:
+                        cc["planned"] = True
+                        if p > 0 and rng.random() < p:
+                            cut = off + rng.randrange(size - off)
                     while off < size:
                         ln = min(CH, size - off)
                         cc["chunks"] += 1
-                        if rng.random() < p:
-                            prefix = rng.randrange(ln)
+                        if cut is not None and cut < off + ln:
+                            prefix = cut - off
                             off += prefix
                             cc["data"] += prefix
                             workers[wi] += prefix / rate_per
@@ -337,7 +350,7 @@ class Sim:
                     wire_rx += cc["data"] + cc["wire"]
                     reconnects += 1
                     workers[wi] += backoff(1) + CONNECT
-                    conn[wi] = dict(start=workers[wi], data=0, wire=0, chunks=0, files=0)
+                    conn[wi] = dict(start=workers[wi], data=0, wire=0, chunks=0, files=0, planned=False)
             for wi in range(k):
                 cc = conn[wi]
                 run.server_row("fetch", sid, k, label, cc["start"], workers[wi], cc["data"], cc["data"] + cc["wire"],

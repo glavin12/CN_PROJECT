@@ -54,5 +54,7 @@ Notes:
 - The `edge` topic `names` has a 255-byte file name. Case 2 and Enhanced cannot store
   `<name>.part` for it (that is 260 bytes, more than NAME_MAX), so their tests use the
   topic `names250` instead (see `make_names250` in `integration/lib.sh`).
-- Case 1 uses p = 0.005 on `many`: an attempt over 400 chunks succeeds with probability
-  (1 − p)^400, which is about 10⁻⁹ at p = 0.05.
+- p is per connection (DEVIATIONS 28), so the fault tests use p = 0.5 and 0.9: an attempt
+  succeeds with probability 1 − p whatever the topic size. Every run starts a new server, so
+  its first connection is always conn_id 1; the Case 1 seeds were picked because they cut
+  that connection (a fault-free run would prove nothing about restarts).

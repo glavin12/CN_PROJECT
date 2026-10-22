@@ -30,7 +30,9 @@ from the means. Means are over the OK repetitions; sd is the sample standard
 deviation (blank with fewer than 2 repetitions).
 
 With --dataset, the topic's N (64 KB chunks, sum of ceil(size/65536)) and T
-(bytes) give the predictions of design section 4.4 next to the measurements.
+(bytes) are reported, and the predictions of the per-connection fault model
+(deviation 28: attempts 1/(1-p), faults p/(1-p) per connection slot, Case 1
+overhead p/(1-p) x half the topic) are printed next to the measurements.
 
 Output (in --out): Part1_summary.csv, Part2_summary.csv, Buffers_summary.csv,
 all_runs.csv (one row per measured run) and summary.md (markdown tables).
@@ -173,7 +175,7 @@ def ival(r, k, default=0):
 
 
 # ----------------------------------------------------------------------------
-# topic statistics and the theory of design 4.4
+# topic statistics and the predictions of the fault model (deviation 28)
 # ----------------------------------------------------------------------------
 
 def topic_chunks(dataset, topic):
@@ -207,8 +209,10 @@ def topic_chunks(dataset, topic):
 
 
 def predictions(impl, p, n_clients, chunks, case1_retries=100):
-    """Design 4.4 predictions for one (implementation, p). Per client values
-    are multiplied by n_clients where the column is per run."""
+    """Predictions for one (implementation, p) under the fault model of
+    deviation 28: every connection is cut with probability p, at a uniformly
+    random byte of the data of its first request. Per client values are
+    multiplied by n_clients where the column is per run."""
     out = {}
     if chunks is None or p is None:
         return out
@@ -217,30 +221,31 @@ def predictions(impl, p, n_clients, chunks, case1_retries=100):
     out["topic_chunks_N"] = N
     out["topic_MB_T"] = T / MB
     q = 1.0 - p
-    P = q ** N  # probability that one attempt sees no fault
+    if q <= 0.0:
+        return out  # p = 1: nothing can finish
+    # Every attempt (Case 1) / connection (Case 2) is cut with probability p,
+    # independently: the number of cuts per client is geometric, mean p / q.
+    cuts = p / q
     if impl == "case1":
-        if P <= 0.0:
-            return out
-        attempts = 1.0 / P
+        attempts = 1.0 / q
         out["pred_attempts_per_client"] = attempts
-        out["pred_chunks_per_client"] = N if p == 0 else (1.0 - P) / (p * P)
-        out["pred_faults"] = n_clients * (attempts - 1.0)
-        # Exact expected data bytes per client for these chunk sizes: a failed
-        # attempt sends every chunk before the faulted one plus a uniform
-        # prefix of 0..c-1 bytes of it (deviation 9); the successful attempt
-        # sends T. E = T + (1/P) * sum_j q^(j-1) p (S_(j-1) + (c_j - 1)/2)
-        acc, s_prev, qj = 0.0, 0, 1.0
-        if p > 0:
-            for c in chunks:
-                acc += qj * p * (s_prev + (c - 1) / 2.0)
-                s_prev += c
-                qj *= q
-        exp_bytes = T + acc / P
-        out["pred_overhead_pct"] = (exp_bytes - T) / T * 100.0 if T else 0.0
-        p_dnf_client = (1.0 - P) ** case1_retries
+        out["pred_faults"] = n_clients * cuts
+        # A failed attempt sends the bytes before a cut byte uniform in
+        # [0, T-1], i.e. (T - 1) / 2 on average; the successful one sends T.
+        out["pred_overhead_pct"] = cuts * (T - 1) / 2.0 / T * 100.0 if T else 0.0
+        p_dnf_client = p ** case1_retries
         out["pred_dnf_run_prob"] = 1.0 - (1.0 - p_dnf_client) ** n_clients
-    elif impl.startswith("case2") or impl.startswith("enh_"):
-        out["pred_faults"] = n_clients * N * p / q if q > 0 else float("inf")
+    elif impl.startswith("case2"):
+        out["pred_faults"] = n_clients * cuts
+        out["pred_overhead_pct"] = 0.0
+    elif impl.startswith("enh_"):
+        # Each of the K worker slots loses its connection with probability p
+        # (during that connection's first FETCH) and reconnects: about K p / q
+        # cuts per client (an upper bound: a worker whose queue is empty does
+        # not reconnect).
+        m = re.match(r"enh_K(\d+)", impl)
+        k = int(m.group(1)) if m else 1
+        out["pred_faults"] = n_clients * k * cuts
         out["pred_overhead_pct"] = 0.0
     return out
 
@@ -503,7 +508,7 @@ def main():
     ap.add_argument("--raw", default=os.path.join(repo, "Results", "raw"), help="raw CSV folder (default Results/raw)")
     ap.add_argument("--out", default=os.path.join(repo, "Results"), help="output folder (default Results)")
     ap.add_argument("--dataset", default=None,
-                    help="topics_root_dir, for N, T and the design 4.4 predictions (default dataset/raw-img if present)")
+                    help="topics_root_dir, for N, T and the fault-model predictions (default dataset/raw-img if present)")
     ap.add_argument("--case1-retries", type=int, default=100, help="Case 1 max_retries used (for P(DNF))")
     args = ap.parse_args()
     if args.dataset is None:
@@ -617,11 +622,11 @@ def main():
         write_csv(os.path.join(args.out, "Part2_summary.csv"), cols, p2_rows)
         topic = p2_rows[0]["topic"]
         ch = chunks_by_topic.get(topic)
-        md += ["## Part II: fault injection (p = per-64-KB-chunk fault probability)", "",
+        md += ["## Part II: fault injection (p = probability that a connection is cut)", "",
                "Topic `%s`, %s clients per run%s." % (
                    topic, p2_rows[0]["n_clients"],
                    ", N = %d chunks, T = %.2f MB" % (len(ch), sum(ch) / MB) if ch else
-                   " (run analyze.py with --dataset for N, T and the design 4.4 predictions)"), ""]
+                   " (run analyze.py with --dataset for N, T and the fault-model predictions)"), ""]
         for impl in sorted({r["impl"] for r in p2_rows}, key=impl_order):
             rows = [r for r in p2_rows if r["impl"] == impl]
             md += ["### " + impl_label(impl), ""]
