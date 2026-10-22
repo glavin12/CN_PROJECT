@@ -28,7 +28,7 @@ server). Part II injects connection failures and recovers from them in three way
 ## Requirements
 
 Linux, `gcc` and `make` (clang is optional). Nothing else is needed to build and run.
-Tests need `bash` and `python3`. The unit tests and `make SAN=...` also need the
+Tests need `bash` and `python3`. Sanitizer builds (`make SAN=...`) also need the
 sanitizer runtimes (Fedora: `libasan libubsan libtsan`; Ubuntu: part of gcc). The graphs
 need `python3-matplotlib`.
 
