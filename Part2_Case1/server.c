@@ -30,9 +30,9 @@
  *     decision, so every fault interrupts file data; a 0-byte file has no
  *     chunk and no decision.
  *   - HOW: each connection owns a fault_state_t (on this thread's stack, see
- *     case1_serve()) with its own drand48_r() generator, seeded with
- *     seed ^ conn_id when [seed] is given (repeatable runs), otherwise from
- *     time, thread id and conn_id. One uniform draw r in [0,1) per chunk; the
+ *     case1_serve()) with its own drand48_r() generator, seeded from a hash
+ *     of (seed, conn_id) when [seed] is given (repeatable runs, deviation 20),
+ *     otherwise from a hash of time, thread id and conn_id. One uniform draw r in [0,1) per chunk; the
  *     chunk faults iff r < p. A second draw picks how many bytes of that chunk
  *     still go out (0 .. len-1), then the server logs a FAULT event and calls
  *     shutdown(SHUT_RDWR) + close(). Only that connection's thread ends; the
@@ -196,7 +196,7 @@ int main(int argc, char **argv)
     if (parse_prob(argv[3], &cfg.p) != 0)
         usage(argv[0], "failure_probability must be a real number in [0, 1]");
     if (argc == 5) {
-        /* Any long: fault_init() seeds each connection with seed ^ conn_id. */
+        /* Any long: fault_init() seeds each connection from hash(seed, conn_id). */
         if (parse_long(argv[4], LONG_MIN, LONG_MAX, &cfg.seed) != 0)
             usage(argv[0], "seed must be an integer");
         cfg.have_seed = 1;

@@ -49,8 +49,8 @@
  * images would otherwise each pay a TCP handshake (and slow start).
  *
  * Fault injection (design section 4, deviation 9): identical to Case 1 and
- * Case 2. Each connection has its own drand48_r() generator (seed ^ conn_id
- * with [seed]); before every 64 KB chunk one draw r, and r < p cuts the
+ * Case 2. Each connection has its own drand48_r() generator (seeded from a
+ * hash of (seed, conn_id) with [seed], deviation 20); before every 64 KB chunk one draw r, and r < p cuts the
  * connection after a random prefix of that chunk. Only that connection ends;
  * the client's other K-1 connections and the session are unaffected.
  *
@@ -416,7 +416,7 @@ int main(int argc, char **argv)
     if (parse_prob(argv[3], &cfg.p) != 0)
         usage(argv[0], "failure_probability must be a real number in [0, 1]");
     if (argc == 5) {
-        /* Any long: fault_init() seeds each connection with seed ^ conn_id. */
+        /* Any long: fault_init() seeds each connection from hash(seed, conn_id). */
         if (parse_long(argv[4], LONG_MIN, LONG_MAX, &cfg.seed) != 0)
             usage(argv[0], "seed must be an integer");
         cfg.have_seed = 1;

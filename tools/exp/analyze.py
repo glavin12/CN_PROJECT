@@ -380,8 +380,11 @@ def run_metrics(rid, info, srows, erows, crows, rrows, chunks_by_topic, notes):
             if "MISMATCH" in c or "NODIR" in c:
                 notes.append("%s: output check %s" % (rid, c))
     # Consistency check (design 6.7): reconnects should equal injected faults,
-    # apart from time-outs.
-    if crows and status == "OK" and m["reconnects"] is not None and info["sweep"] != "part1":
+    # apart from time-outs. Not for Enhanced: there a re-queued file is often
+    # taken by another connection that is still open, so reconnects can
+    # legitimately be lower than faults (DEVIATIONS 24).
+    if (crows and status == "OK" and m["reconnects"] is not None and info["sweep"] != "part1"
+            and not str(info.get("impl", "")).startswith("enh")):
         f, rc = m["faults"], m["reconnects"]
         if abs(f - rc) > max(2, 0.1 * max(f, rc)):
             notes.append("%s: %d faults but %d reconnects" % (rid, f, rc))

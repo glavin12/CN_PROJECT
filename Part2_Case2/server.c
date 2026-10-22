@@ -38,8 +38,8 @@
  * still resume safely: session_validate_resume() then adopts the client's id.
  *
  * Fault injection (design section 4, deviation 9): every connection has its
- * own drand48_r() generator, seeded with seed ^ conn_id (or time ^ thread id ^
- * conn_id without a seed). transfer.c calls c->fault_hook immediately before
+ * own drand48_r() generator, seeded from a hash of (seed, conn_id) (or of
+ * time, thread id and conn_id without a seed; deviation 20). transfer.c calls c->fault_hook immediately before
  * each 64 KB chunk of file data; with probability p it sends a random prefix
  * of that chunk and then shutdown()+close()s the connection. Control messages
  * never get a draw. The session record keeps what was really handed to the

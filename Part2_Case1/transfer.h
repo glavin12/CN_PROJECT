@@ -23,6 +23,13 @@
 
 /* ---- Server side -------------------------------------------------------------- */
 
+/*
+ * SIGPIPE: sendfile() takes no flags, so unlike sendall() it cannot pass
+ * MSG_NOSIGNAL. Writing to a connection the peer has reset would raise
+ * SIGPIPE and kill the process. Every process that calls send_file_range()
+ * must therefore ignore SIGPIPE; server_run() does this at start-up.
+ */
+
 typedef enum {
     XFER_OK       = 0,   /* everything requested was sent */
     XFER_FAULT    = 1,   /* fault injected; connection already closed (conn_abort) */
