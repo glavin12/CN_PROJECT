@@ -365,7 +365,7 @@ static step_t manifest_attempt(enh_t *e, int is_reconnect, char *why, size_t cap
     } else if (h.type == MSG_ERROR && dec_error(payload, (size_t)h.payload_len, &err) == 0) {
         if (err.code == FDS_ERR_BUSY) {
             /* Thread limit or session table full: the server is fine, just full. */
-            snprintf(why, cap, "server busy (503: %s)", err.msg);
+            snprintf(why, cap, "server busy (503: %.200s)", err.msg);
             res = STEP_RETRY;
         } else {
             report_server_error(e, &err);   /* 404 / 400 / 500 */
@@ -726,7 +726,7 @@ static void do_item(worker_t *w, const work_item_t *it)
     case RX_SERVER_ERR:
         if (w->rx.err.code == FDS_ERR_BUSY) {
             /* The server closes after a 503: same as a lost connection. */
-            snprintf(why, sizeof(why), "server busy (503: %s)", w->rx.err.msg);
+            snprintf(why, sizeof(why), "server busy (503: %.200s)", w->rx.err.msg);
             connection_failed(w, it, enh_part_offset(e, it->idx), got, why);
             return;
         }

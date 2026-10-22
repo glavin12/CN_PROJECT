@@ -256,12 +256,43 @@ static void finish_conn(conn_t *c, int was_active, int was_busy)
     free(c);
 }
 
+/*
+ * After a normal end of service, half-close and wait for the client's own
+ * close before the connection's end time is taken. send()/sendfile() return
+ * as soon as the kernel has queued the data, so without this wait the last
+ * few MB still sitting in the socket buffers would fall outside the measured
+ * interval and inflate the throughput (the Part I metric is "time required to
+ * send data to the requesting client"). Every client closes right after its
+ * last message (TOPIC_END / MANIFEST / last FILE_END), so the wait is about
+ * one round trip. The 5 s cap bounds a misbehaving client. It also means the
+ * final close() is a clean FIN with no unread data, never an RST.
+ */
+static void drain_until_peer_closes(conn_t *c)
+{
+    char buf[256];
+    struct timeval tv = { FDS_SHUTDOWN_GRACE_S, 0 };
+
+    if (c->fd < 0 || shutdown(c->fd, SHUT_WR) != 0)
+        return;
+    (void)setsockopt(c->fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+    for (;;) {
+        ssize_t n = recv(c->fd, buf, sizeof(buf), 0);
+        if (n > 0)
+            continue;               /* unexpected extra bytes: discard */
+        if (n < 0 && errno == EINTR)
+            continue;
+        break;                      /* 0 = client closed; error/time-out: give up */
+    }
+}
+
 /* Serve one admitted connection to the end (any thread). */
 static void run_conn(conn_t *c)
 {
     /* The return value is documented as ignored: serve_client() reports its
      * outcome through c->status and the counters. */
     (void)c->cfg->serve_client(c);
+    if (strcmp(c->status, "OK") == 0)
+        drain_until_peer_closes(c);
     finish_conn(c, 1, 0);
 }
 

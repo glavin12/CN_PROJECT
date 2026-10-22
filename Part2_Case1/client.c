@@ -263,7 +263,7 @@ static attempt_t classify(rx_rc_t rc, const run_t *r, const args_t *a, int err,
     case RX_SERVER_ERR:
         if (r->rx.err.code == FDS_ERR_BUSY) {
             /* Thread limit reached: the server is fine, just full. */
-            snprintf(why, cap, "server busy (503: %s)", r->rx.err.msg);
+            snprintf(why, cap, "server busy (503: %.200s)", r->rx.err.msg);
             return ATTEMPT_RETRY;
         }
         if (r->rx.err.code == FDS_ERR_NOT_FOUND)

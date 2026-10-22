@@ -233,7 +233,7 @@ int tcp_connect(const char *host, uint16_t port, int timeout_sec)
     hints.ai_flags = AI_NUMERICSERV;
     snprintf(port_str, sizeof(port_str), "%u", (unsigned)port);
 
-    /* getaddrinfo (deviation 16) accepts both "10.0.0.5" and "localhost". */
+    /* getaddrinfo (deviation 16) accepts a dotted IPv4 address or a host name. */
     rc = getaddrinfo(host, port_str, &hints, &res);
     if (rc != 0) {
         log_warn("cannot resolve host '%s': %s", host,
