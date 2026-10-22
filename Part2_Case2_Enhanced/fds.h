@@ -24,6 +24,10 @@
 /* Size caps per message type (deviation 2: MANIFEST may exceed 64 KB). */
 #define FDS_MAX_CTRL_PAYLOAD      (64u * 1024u)
 #define FDS_MAX_MANIFEST_PAYLOAD  (64u * 1024u * 1024u)
+/* Largest payload a server accepts from a client. The biggest request is
+ * RESUME/FETCH: 16+4+8+1+63+2+255 = 349 bytes. A server never buffers more
+ * than this for an unauthenticated peer. */
+#define FDS_MAX_REQUEST_PAYLOAD   512u
 
 /* ---- Transfer constants ------------------------------------------------ */
 #define FDS_CHUNK_SIZE       65536u    /* file data is sent in 64 KB chunks; one fault draw per chunk */

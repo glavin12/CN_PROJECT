@@ -75,7 +75,7 @@ static int read_get_request(conn_t *c, char key[FDS_TOPIC_MAX + 1])
     msg_hdr_t h;
     uint8_t *payload = NULL;
     uint64_t rx_wire = 0;
-    int rc = recv_msg(c->fd, &h, &payload, &rx_wire);
+    int rc = conn_recv_request(c, &h, &payload, &rx_wire);
     int ok = rc == NET_OK && h.type == MSG_GET &&
              dec_get(payload, (size_t)h.payload_len, key) == 0;
 

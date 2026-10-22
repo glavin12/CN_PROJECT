@@ -189,6 +189,13 @@ static void handle_resume(conn_t *c, const uint8_t *payload, size_t len)
         conn_send_error(c, FDS_ERR_BAD_REQUEST, "malformed RESUME request");
         return;
     }
+    /* We never hand out the all-zero id (session_create skips it), but zeroed
+     * memory looks like it: two clients with a zeroed .session must not end up
+     * sharing one adopted record. */
+    if (bytes_all_zero(m.session_id, sizeof(m.session_id))) {
+        conn_send_error(c, FDS_ERR_BAD_REQUEST, "RESUME without a session id");
+        return;
+    }
     /* The topic as the client typed it; NULL is answered by check 1. */
     t = topic_find_or_rescan(c->map, m.topic);
     if (t != NULL)
@@ -236,7 +243,7 @@ static int serve_client(conn_t *c)
     c->fault_hook    = fault_should_fail;
     c->progress_hook = on_progress;
 
-    rc = recv_msg(c->fd, &h, &payload, NULL);
+    rc = conn_recv_request(c, &h, &payload, NULL);
     if (rc == NET_PROTO) {
         conn_send_error(c, FDS_ERR_BAD_REQUEST, "malformed message header");
     } else if (rc != NET_OK) {

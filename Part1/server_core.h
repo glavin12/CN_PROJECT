@@ -22,6 +22,7 @@
 
 #include <stdint.h>
 #include "fds.h"
+#include "protocol.h"   /* msg_hdr_t for conn_recv_request() */
 #include "topic_map.h"
 
 struct conn;
@@ -105,6 +106,23 @@ int conn_send(conn_t *c, const uint8_t *buf, size_t len, int more);
 
 /* Send ERROR(code, msg) on c (best effort) and set c->status to "ERR_<code>". */
 void conn_send_error(conn_t *c, uint16_t code, const char *msg);
+
+/*
+ * Read one client REQUEST (GET, RESUME, MANIFEST_REQ or FETCH). Every server
+ * uses this instead of recv_msg(). Differences:
+ *   - the whole request must arrive within FDS_SRV_TIMEOUT_S. SO_RCVTIMEO
+ *     only bounds the gap between bytes, so a peer dripping one byte at a
+ *     time could otherwise hold a thread for ever;
+ *   - only the four client->server types are accepted, and the payload must be
+ *     <= FDS_MAX_REQUEST_PAYLOAD. This is checked BEFORE anything is
+ *     allocated, so a hostile 64 MiB "MANIFEST" is refused, not buffered.
+ * Returns NET_OK, NET_EOF (clean close before a header), NET_ERR (errno set;
+ * EAGAIN = deadline passed, ECONNRESET = closed mid-message) or NET_PROTO (bad
+ * header, wrong type or too large; callers answer ERROR 400). *payload is
+ * malloc'd (NULL for an empty payload). Bytes read are added to *wire if
+ * wire != NULL.
+ */
+int conn_recv_request(conn_t *c, msg_hdr_t *h, uint8_t **payload, uint64_t *wire);
 
 /* 1 once shutdown has started (serve loops may check it between files). */
 int server_stopping(void);

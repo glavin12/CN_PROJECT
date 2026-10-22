@@ -51,6 +51,8 @@
 #include "util.h"
 
 #include <errno.h>
+#include <limits.h>
+#include <poll.h>
 #include <pthread.h>
 #include <signal.h>
 #include <stdatomic.h>
@@ -267,22 +269,123 @@ static void finish_conn(conn_t *c, int was_active, int was_busy)
  * one round trip. The 5 s cap bounds a misbehaving client. It also means the
  * final close() is a clean FIN with no unread data, never an RST.
  */
+/*
+ * Wait until fd is readable or the absolute deadline (now_ns() clock) passes.
+ * Returns 1 if readable, 0 on time-out, -1 on error.
+ */
+static int wait_readable(int fd, int64_t deadline)
+{
+    for (;;) {
+        int64_t left_ms = (deadline - now_ns()) / 1000000;
+        struct pollfd pfd = { fd, POLLIN, 0 };
+        int r;
+
+        if (left_ms <= 0)
+            return 0;
+        r = poll(&pfd, 1, left_ms > INT_MAX ? INT_MAX : (int)left_ms);
+        if (r < 0 && errno == EINTR)
+            continue;
+        return r < 0 ? -1 : r > 0;
+    }
+}
+
 static void drain_until_peer_closes(conn_t *c)
 {
+    /* The deadline is absolute: a peer that keeps trickling bytes cannot
+     * stretch the wait beyond FDS_SHUTDOWN_GRACE_S (it would otherwise hold
+     * the single-mode server's only thread). */
+    int64_t deadline = now_ns() + (int64_t)FDS_SHUTDOWN_GRACE_S * 1000000000LL;
     char buf[256];
-    struct timeval tv = { FDS_SHUTDOWN_GRACE_S, 0 };
 
     if (c->fd < 0 || shutdown(c->fd, SHUT_WR) != 0)
         return;
-    (void)setsockopt(c->fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
-    for (;;) {
-        ssize_t n = recv(c->fd, buf, sizeof(buf), 0);
-        if (n > 0)
-            continue;               /* unexpected extra bytes: discard */
-        if (n < 0 && errno == EINTR)
+    while (wait_readable(c->fd, deadline) == 1) {
+        ssize_t n = recv(c->fd, buf, sizeof(buf), MSG_DONTWAIT);
+        if (n < 0 && (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK))
             continue;
-        break;                      /* 0 = client closed; error/time-out: give up */
+        break;    /* 0 = client closed (the normal case); data or error: stop waiting */
     }
+}
+
+/*
+ * Read exactly n bytes before the absolute deadline. Returns NET_OK, NET_EOF
+ * (closed before the first byte), or NET_ERR (errno: EAGAIN = deadline,
+ * ECONNRESET = closed part-way, or the recv error). *got = bytes read.
+ */
+static int read_by_deadline(int fd, uint8_t *buf, size_t n, int64_t deadline, size_t *got)
+{
+    *got = 0;
+    while (*got < n) {
+        int w = wait_readable(fd, deadline);
+        ssize_t r;
+
+        if (w == 0) {
+            errno = EAGAIN;
+            return NET_ERR;
+        }
+        if (w < 0)
+            return NET_ERR;
+        r = recv(fd, buf + *got, n - *got, MSG_DONTWAIT);
+        if (r > 0) {
+            *got += (size_t)r;
+            continue;
+        }
+        if (r == 0) {
+            if (*got == 0)
+                return NET_EOF;
+            errno = ECONNRESET;
+            return NET_ERR;
+        }
+        if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK)
+            continue;
+        return NET_ERR;
+    }
+    return NET_OK;
+}
+
+int conn_recv_request(conn_t *c, msg_hdr_t *h, uint8_t **payload, uint64_t *wire)
+{
+    int64_t deadline = now_ns() + (int64_t)FDS_SRV_TIMEOUT_S * 1000000000LL;
+    uint8_t hdr[FDS_HDR_LEN];
+    uint8_t *buf = NULL;
+    size_t got;
+    int rc;
+
+    *payload = NULL;
+    if (c->fd < 0) {
+        errno = EBADF;
+        return NET_ERR;
+    }
+    rc = read_by_deadline(c->fd, hdr, sizeof(hdr), deadline, &got);
+    if (wire != NULL)
+        *wire += got;
+    if (rc == NET_EOF)
+        return NET_EOF;
+    if (rc != NET_OK)
+        return NET_ERR;
+    if (hdr_decode(hdr, h) != 0)
+        return NET_PROTO;
+    /* Only requests may come from a client, and they are small: refuse
+     * anything else before allocating a single byte for it. */
+    if ((h->type != MSG_GET && h->type != MSG_RESUME && h->type != MSG_MANIFEST_REQ &&
+         h->type != MSG_FETCH) || h->payload_len > FDS_MAX_REQUEST_PAYLOAD)
+        return NET_PROTO;
+    if (h->payload_len == 0)
+        return NET_OK;
+    buf = malloc((size_t)h->payload_len);
+    if (buf == NULL)
+        return NET_ERR;
+    rc = read_by_deadline(c->fd, buf, (size_t)h->payload_len, deadline, &got);
+    if (wire != NULL)
+        *wire += got;
+    if (rc != NET_OK) {
+        free(buf);
+        if (rc == NET_EOF)
+            errno = ECONNRESET;    /* the header arrived, so this is mid-message */
+        return NET_ERR;
+    }
+    *payload = buf;
+    return NET_OK;
 }
 
 /* Serve one admitted connection to the end (any thread). */

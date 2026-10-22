@@ -117,6 +117,19 @@ void log_warn(const char *fmt, ...)
     va_end(ap);
 }
 
+/* Read a log descriptor under the lock: log_close() may reset it concurrently
+ * on the forced-exit path. It is only a fast "logging off?" check; append_row()
+ * runs under the same lock and checks again. */
+static int fd_open(const int *fdp)
+{
+    int open_;
+
+    pthread_mutex_lock(&g_mu);
+    open_ = *fdp >= 0;
+    pthread_mutex_unlock(&g_mu);
+    return open_;
+}
+
 static void sid_hex(const uint8_t *sid, char out[2 * FDS_SESSION_ID_LEN + 1])
 {
     if (sid == NULL)
@@ -161,7 +174,7 @@ void log_conn(const log_conn_row_t *r)
     char row[1024], sid[2 * FDS_SESSION_ID_LEN + 1], topic[160], seed[32];
     int n;
 
-    if (g_main_fd < 0)
+    if (!fd_open(&g_main_fd))
         return;
     sid_hex(r->session_id, sid);
     csv_str(topic, sizeof(topic), r->topic);
@@ -188,7 +201,7 @@ void log_event(const char *event, uint64_t conn_id, const uint8_t *session_id,
     char row[1024], sid[2 * FDS_SESSION_ID_LEN + 1], t[160], d[320];
     int n;
 
-    if (g_events_fd < 0)
+    if (!fd_open(&g_events_fd))
         return;
     sid_hex(session_id, sid);
     csv_str(t, sizeof(t), topic);
@@ -210,7 +223,7 @@ void log_client(const log_client_row_t *r)
     char row[1024], host[256], topic[160];
     int n;
 
-    if (g_main_fd < 0)
+    if (!fd_open(&g_main_fd))
         return;
     if (gethostname(host, sizeof(host)) != 0)
         strcpy(host, "-");

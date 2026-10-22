@@ -327,12 +327,21 @@ static void serve_fetches(conn_t *c, uint8_t *payload, size_t len)
         if (next == FETCH_STOP || server_stopping())
             return;
 
-        rc = recv_msg(c->fd, &h, &payload, NULL);
-        if (rc == NET_EOF)
-            return;     /* the client's queue is empty: normal end, status stays "OK" */
-        if (rc == NET_ERR) {
-            /* Reset, or idle longer than the server time-out. */
-            c->status = "PEER_LOST";
+        rc = conn_recv_request(c, &h, &payload, NULL);
+        if (rc == NET_EOF || rc == NET_ERR) {
+            /*
+             * EOF: this worker's queue is empty, the normal end (status stays
+             * "OK"). NET_ERR: reset, or idle longer than the server time-out.
+             * If the topic is not fully sent yet, the session may now have no
+             * connection at all (a killed client, a DNF run, an adopted session
+             * whose client already had some files): INTERRUPTED keeps such a
+             * slot evictable instead of pinning it ACTIVE for 300 s. Another
+             * live connection's next chunk makes it ACTIVE again.
+             */
+            if (rc == NET_ERR)
+                c->status = "PEER_LOST";
+            if (c->have_session && !session_all_sent(c->session_id))
+                session_set_state(c->session_id, SESS_INTERRUPTED);
             return;
         }
         if (rc == NET_PROTO || h.type != MSG_FETCH) {
@@ -351,7 +360,7 @@ static void serve_first(conn_t *c)
 {
     msg_hdr_t h;
     uint8_t *payload = NULL;
-    int rc = recv_msg(c->fd, &h, &payload, NULL);
+    int rc = conn_recv_request(c, &h, &payload, NULL);
 
     if (rc == NET_EOF || rc == NET_ERR) {
         c->status = "PEER_LOST";        /* closed / reset / timed out before a request */

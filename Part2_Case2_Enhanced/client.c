@@ -433,6 +433,26 @@ int enh_fetch_manifest(enh_t *e)
     else
         memcpy(e->session_id, e->man.session_id, sizeof(e->session_id));
 
+    /*
+     * Fresh run: nothing already in the folder belongs to this session. Old
+     * files are removed BEFORE .session is written. Once .session exists, a
+     * restarted client trusts every complete file of the right size (step 2),
+     * so a stale same-size file left from an unrelated run would be accepted
+     * as ours if this client were killed before overwriting it. Foreign
+     * *.part files go too, so the folder ends with only topic files.
+     */
+    if (!e->had_session) {
+        if (remove_partials(e->dir) != 0)
+            log_warn("cannot remove old partial files in %s: %s", e->dir, strerror(errno));
+        for (uint32_t i = 0; i < e->man.file_count; i++) {
+            char path[PATH_MAX];
+
+            if (path_join(path, sizeof(path), e->dir, e->man.files[i].name) == 0 &&
+                unlink(path) != 0 && errno != ENOENT)
+                log_warn("cannot remove old %s: %s", path, strerror(errno));
+        }
+    }
+
     memset(&ck, 0, sizeof(ck));
     memcpy(ck.session_id, e->session_id, sizeof(ck.session_id));
     memcpy(ck.topic, e->topic, strlen(e->topic) + 1);

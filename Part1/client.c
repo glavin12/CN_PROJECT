@@ -282,7 +282,11 @@ static int finish(const args_t *a, run_t *r, int ok)
     return ok ? FDS_EXIT_OK : FDS_EXIT_FATAL;
 }
 
-/* One connection: GET, receive everything, verify. Returns 1 on success. */
+/* fetch_topic() result: the server refused with ERROR 503 (thread limit). */
+#define FETCH_BUSY 2
+
+/* One connection: GET, receive everything, verify. Returns 1 on success,
+ * FETCH_BUSY if the server is at its thread limit, 0 on any other failure. */
 static int fetch_topic(const args_t *a, run_t *r)
 {
     rx_rc_t rc;
@@ -304,11 +308,38 @@ static int fetch_topic(const args_t *a, run_t *r)
         log_warn("close: %s", strerror(errno));
     r->rx.fd = -1;
 
+    if (rc == RX_SERVER_ERR && r->rx.err.code == FDS_ERR_BUSY)
+        return FETCH_BUSY;
     if (rc != RX_OK) {
         report_rx_failure(rc, &r->rx, a, err);
         return 0;
     }
     return totals_agree(r);
+}
+
+/*
+ * Part I has no fault tolerance, but ERROR 503 is not a failure of the
+ * transfer: the multi-threaded server is at its FDS_MAX_THREADS limit and
+ * refused before sending anything. The client waits (the usual back-off) and
+ * asks again, so a burst of more than 256 clients is served rather than
+ * having the extra clients exit 1. Every other error stays fatal.
+ */
+#define PART1_BUSY_TRIES 100
+
+static int fetch_topic_when_free(const args_t *a, run_t *r)
+{
+    for (int tries = 1;; tries++) {
+        int ok = fetch_topic(a, r);
+
+        if (ok != FETCH_BUSY)
+            return ok;
+        if (tries >= PART1_BUSY_TRIES) {
+            print_error("server busy (503) on %d attempts; giving up", tries);
+            return 0;
+        }
+        log_info("server busy (503); retrying in %ld ms", backoff_ms(tries));
+        sleep_ms(backoff_ms(tries));
+    }
 }
 
 int main(int argc, char **argv)
@@ -329,5 +360,5 @@ int main(int argc, char **argv)
 
     r.start_ns = now_ns();           /* just before connect() */
     r.start_wall_ns = wall_ns();
-    return finish(&a, &r, fetch_topic(&a, &r));
+    return finish(&a, &r, fetch_topic_when_free(&a, &r));
 }
