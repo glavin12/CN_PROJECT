@@ -15,8 +15,9 @@
  *     process that calls send_file_range() must therefore ignore SIGPIPE,
  *     which server_run() does before any connection exists.
  *   - Data is sent in 64 KB chunks. Before each chunk the fault hook (Part II)
- *     draws once (design 4.1). On a fault a random prefix of the chunk still
- *     goes out, then the connection is cut (deviation 9).
+ *     says whether the connection's planned cut falls inside it (deviation
+ *     28). If so, the bytes before the cut byte still go out, then the
+ *     connection is cut (deviation 9).
  *   - Byte accounting is exact on every path: the counters and the progress
  *     hook get the number of bytes the kernel actually ACCEPTED, even when a
  *     send fails half-way. That matters for Case 2 / Enhanced, where the
@@ -220,17 +221,18 @@ static void inject_fault(conn_t *c, const topic_t *t, uint32_t idx, uint64_t chu
     snprintf(detail, sizeof(detail), "prefix=%zu/%zu", prefix, n);
     /* offset = where the faulted chunk began; chunk_index = 0-based index of
      * that chunk among the chunks of this connection; conn_data_bytes
-     * includes the prefix (design 4.3, deviation 9). */
+     * includes the prefix (design 4.3, deviations 9 and 28). */
     log_event("FAULT", c->conn_id, c->have_session ? c->session_id : NULL, topic_key(c, t),
               (int64_t)idx, chunk_off, chunk_idx, c->data_bytes, detail);
-    log_info("conn %llu: FAULT in file #%u at offset %llu (%zu of %zu chunk bytes sent)",
-             (unsigned long long)c->conn_id, idx, (unsigned long long)chunk_off, prefix, n);
+    log_info("conn %llu: FAULT injected: cut in file #%u '%s' at byte %llu, connection closed",
+             (unsigned long long)c->conn_id, idx, t->files[idx].name,
+             (unsigned long long)(chunk_off + prefix));
     c->faulted = 1;
     c->status = "FAULT";
     conn_abort(c);                      /* shutdown(SHUT_RDWR) + close() */
 }
 
-/* Send [off, size) of file idx in chunks, with a fault draw before each. */
+/* Send [off, size) of file idx in chunks, asking the fault hook before each. */
 static xfer_rc_t send_chunks(conn_t *c, src_t *s, const topic_t *t, uint32_t idx,
                              uint64_t off, uint64_t size)
 {
@@ -242,7 +244,8 @@ static xfer_rc_t send_chunks(conn_t *c, src_t *s, const topic_t *t, uint32_t idx
         size_t prefix = 0, sent;
         int faulted = 0, rc, err;
 
-        /* One draw per chunk, before any byte of it is sent (design 4.1). */
+        /* Ask the fault hook before any byte of the chunk is sent: it says
+         * whether the connection's planned cut falls inside it (deviation 28). */
         if (c->fault_hook != NULL && c->fault_hook(c->fault_state, n, &prefix) == 1) {
             faulted = 1;
             /* The contract is prefix < chunk length: at least one byte of the

@@ -12,8 +12,8 @@
  *     GET <topic>            ------------->
  *                            <-------------    TOPIC_BEGIN(session 0, file_count, total_bytes)
  *                            <-------------    FILE_HDR #0 + data + FILE_END ... FILE_HDR #57 + part of its data
- *                                              fault drawn for a chunk: send a random prefix of
- *                                              that chunk, then shutdown() + close()
+ *                                              this connection was drawn for a cut: stop at
+ *                                              the chosen byte, then shutdown() + close()
  *     (recv() returns 0 before TOPIC_END: failure detected; back-off; reconnect)
  *     GET <topic>            ------------->
  *                            <-------------    TOPIC_BEGIN, ALL files again from #0, TOPIC_END
@@ -22,25 +22,28 @@
  * every connection serves the topic from file 0, offset 0. A reconnecting
  * client is indistinguishable from a new one.
  *
- * WHEN and HOW the failure decision is made (design section 4, deviation 9;
- * the full rationale is the header comment of fault.c):
- *   - WHEN: inside the file-send loop of transfer.c (send_file_range()),
- *     immediately before every 64 KB chunk of file data, through the
- *     connection's fault hook. Headers and control messages never get a
- *     decision, so every fault interrupts file data; a 0-byte file has no
- *     chunk and no decision.
+ * WHEN and HOW the failure decision is made (design section 4, deviations 9
+ * and 28; the full rationale is the header comment of fault.c):
+ *   - WHEN: once per connection, after the GET has been accepted and before
+ *     the first byte of file data (fault_plan() in serve_get()). The request
+ *     is always the whole topic, so the decision covers all of its bytes.
+ *     Control messages never get a decision, so every fault interrupts file
+ *     data.
  *   - HOW: each connection owns a fault_state_t (on this thread's stack, see
  *     case1_serve()) with its own drand48_r() generator, seeded from a hash
  *     of (seed, conn_id) when [seed] is given (repeatable runs, deviation 20),
- *     otherwise from a hash of time, thread id and conn_id. One uniform draw r in [0,1) per chunk; the
- *     chunk faults iff r < p. A second draw picks how many bytes of that chunk
- *     still go out (0 .. len-1), then the server logs a FAULT event and calls
- *     shutdown(SHUT_RDWR) + close(). Only that connection's thread ends; the
- *     server keeps accepting clients.
- *   - p is therefore a per-64-KB-chunk probability: with N chunks in the
- *     topic, an attempt succeeds with probability (1 - p)^N (design 4.4).
- *     p = 0 behaves exactly like Part I; p = 1 cuts every chunk, so Case 1
- *     can never finish and the client gives up after max_retries.
+ *     otherwise from a hash of time, thread id and conn_id. One uniform draw
+ *     r in [0,1): the connection is cut iff r < p. A second draw picks the
+ *     cut byte uniformly in the topic's data. The file-send loop of
+ *     transfer.c sends everything before that byte, then the server logs a
+ *     FAULT event and calls shutdown(SHUT_RDWR) + close(). Only that
+ *     connection's thread ends; the server keeps accepting clients.
+ *   - p is therefore the probability that one attempt is interrupted: an
+ *     attempt succeeds with probability 1 - p whatever the topic size, and a
+ *     client needs 1 / (1 - p) attempts on average. Each failed attempt wastes
+ *     on average half the topic. p = 0 behaves exactly like Part I; p = 1
+ *     cuts every attempt, so Case 1 can never finish and the client gives up
+ *     after max_retries.
  *
  * Part II always runs thread-per-client (the assignment requires it), so
  * there is no single/multi argument here. The accept loop, thread cap, signal
@@ -154,7 +157,9 @@ static void serve_get(conn_t *c)
     memcpy(c->topic, t->key, sizeof(c->topic));
 
     /* Always the whole topic from file 0, offset 0: nothing is remembered
-     * from an earlier, interrupted connection of the same client. */
+     * from an earlier, interrupted connection of the same client. The
+     * connection's one fault decision covers exactly those bytes. */
+    fault_plan(c->fault_state, t->total_bytes);
     record_result(c, serve_topic(c, t, zero_sid, 0, 0, 1));
 }
 

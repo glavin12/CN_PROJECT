@@ -13,10 +13,9 @@
 #   - p = 1, max_retries 5 -> exit 2 (gave up) quickly, client CSV status DNF;
 #   - a cut at any byte (faultproxy, also mid-header) is survived.
 #
-# Why p = 0.005 for 'many' and not 0.05: 'many' has 400 one-chunk files, so an
-# attempt succeeds with probability (1-p)^400. At p = 0.05 that is 1e-9 and
-# Case 1 can never finish (design 4.4); at p = 0.005 it is 0.13 (about 7
-# attempts expected, P(100 attempts fail) < 1e-6).
+# p is the probability that a connection is cut (DEVIATIONS 28), so an attempt
+# succeeds with probability 1 - p whatever the topic size: at p = 0.5 about 2
+# attempts are expected and P(100 attempts all fail) = 2^-100.
 set -euo pipefail
 source "$(dirname "$0")/lib.sh"
 
@@ -77,14 +76,18 @@ fault_run() {
 }
 
 section "fault injection (whole topic re-sent after each fault)"
-fault_run 0.05 7 boundary
-fault_run 0.05 7 tiny
-fault_run 0.005 7 many
+# Each run starts a new server, so its first connection is always conn_id 1:
+# these seeds were picked because they cut it at p = 0.5 (a seed that does
+# not would give a fault-free run, which proves nothing about restarts).
+fault_run 0.5 1 boundary
+fault_run 0.5 4 tiny
+fault_run 0.5 5 many
+fault_run 0.9 7 big                          # about 10 attempts
 if is_quick; then
     skip "second seed (--quick)"
 else
-    fault_run 0.05 8 boundary
-    fault_run 0.005 8 many
+    fault_run 0.5 10 boundary
+    fault_run 0.5 1 many
 fi
 check "at least one faulty run needed more than one attempt (max $MAX_ATTEMPTS)" test "$MAX_ATTEMPTS" -gt 1
 

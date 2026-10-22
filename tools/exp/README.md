@@ -37,11 +37,11 @@ first: `make -C Part1 && make -C Part2_Case1 && make -C Part2_Case2 && make -C P
 | Script | Configurations | Topic | Clients | Runs per configuration |
 |---|---|---|---|---|
 | `run_part1.sh` | server ∈ {single, multi} × N ∈ {1, 2, 4, 8, 16, 32} | `elefante` | N in total: A gets ⌈N/2⌉, B gets ⌊N/2⌋ (N = 1 → A only) | 1 warm-up + 5 reps |
-| `run_part2.sh` | p ∈ {0, 0.0001, 0.0002, 0.0005, 0.001, 0.002, 0.005, 0.01} × {Case 1 (max_retries 100), Case 2 (20), Enhanced K ∈ {1, 2, 4, 8} io=threads, Enhanced K = 4 io=poll} | `gatto` | 4 (2 on A, 2 on B) | 1 warm-up + 5 reps |
+| `run_part2.sh` | p ∈ {0, 0.1, 0.2, 0.3, 0.5, 0.7, 0.9} (per connection, DEVIATIONS 28) × {Case 1 (max_retries 100), Case 2 (20), Enhanced K ∈ {1, 2, 4, 8} io=threads, Enhanced K = 4 io=poll} | `gatto` | 4 (2 on A, 2 on B) | 1 warm-up + 5 reps |
 | `run_part2.sh --part1-compare` | adds the Part I **multi** server with the same topic and 4 clients (reference for p = 0) | `gatto` | 4 | 1 + 5 |
 | `run_buffers.sh` | {Case 2, Enhanced K = 4} × buffer ∈ {default, 65536, 262144, 1048576, 4194304} at p = 0 | `gatto` | 4 | 1 + 3 |
 
-Totals: Part I 72 runs, Part II 336 runs (342 with `--part1-compare`), buffers
+Totals: Part I 72 runs, Part II 294 runs (300 with `--part1-compare`), buffers
 40 runs. `--quick` runs a small version of each sweep to test the pipeline.
 
 ### Fixed seeds
@@ -205,7 +205,7 @@ What happens:
 Long sweeps:
 - **Interrupted?** Ctrl-C stops the current run cleanly. Run the same command
   again with `--resume` to skip the runs that are already done.
-- **Shorter sessions.** `--cases case2,enh`, `--cases case1` or `--ps 0,0.001`
+- **Shorter sessions.** `--cases case2,enh`, `--cases case1` or `--ps 0,0.1,0.2`
   split Part II. All runs land in the same folder.
 
 ### 3b. manual mode (no ssh)
@@ -245,12 +245,12 @@ Default slot lengths:
 | Sweep | Slot |
 |---|---|
 | Part I | 20 + 4·N s |
-| Case 1 | 60 s (p ≤ 0.0005), 120 s (p ≤ 0.002), 180 s (larger p) |
+| Case 1 | 60 s (p ≤ 0.5), 120 s (larger p) |
 | Case 2 | 60 s |
 | Enhanced and `--part1-compare` | 45 s |
 | Buffers | 60 s |
 
-That gives Part I ≈ 1 h 15 min, Part II ≈ 5 h 15 min and buffers ≈ 40 min. Use
+That gives Part I ≈ 1 h 15 min, Part II ≈ 4 h 20 min and buffers ≈ 40 min (ssh and emu modes do not wait for slots and are faster). Use
 `--slot-scale 0.5` on a fast network, `--slot-scale 2` on a slow one, or
 `--slot <s>` for one fixed length. A client still running at the end of its
 slot is killed and counts as DNF. Slots that are already over when a PC starts
@@ -289,13 +289,14 @@ warm-ups and computes the following per run (design §6.7; MB = 10⁶ bytes):
   counted and listed under "Data checks" in `summary.md`.
 
 **With `--dataset`:** the topic's N (Σ ⌈size / 65536⌉) and T are computed, and
-the design §4.4 predictions are added next to the measurements:
-- Case 1 attempts 1/(1−p)^N.
-- Case 1 chunks transmitted (1−(1−p)^N)/(p(1−p)^N).
-- Case 1 overhead, computed exactly from the real chunk sizes, including the
-  random partial chunk of deviation 9.
-- P(a Case 1 run is DNF).
-- Case 2 / Enhanced faults N·p/(1−p) per client.
+the predictions of the per-connection fault model (DEVIATIONS 28: every
+connection is cut with probability p, at a uniform byte of its first request's
+data) are added next to the measurements:
+- Case 1 attempts 1/(1−p), faults p/(1−p) per client.
+- Case 1 overhead p/(1−p) × (T−1)/2 ÷ T: each cut wastes half the topic on average.
+- P(a Case 1 run is DNF): a client gives up with probability p^max_retries.
+- Case 2 faults p/(1−p) per client; Enhanced about K·p/(1−p) per client (each of
+  the K connections can be cut); overhead 0 for both.
 
 **Consistency check:** where faults ≠ reconnects, the run is listed under
 "Data checks".

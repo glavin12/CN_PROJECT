@@ -74,32 +74,39 @@ with Ctrl-C.
 |---|---|---|
 | Part I single | `cd Part1; ./server 5050 ../dataset/raw-img single` | `./client 127.0.0.1 5050 gatto ../out` |
 | Part I multi (default) | `./server 5050 ../dataset/raw-img multi` | same |
-| Case 1 | `cd Part2_Case1; ./server 5050 ../dataset/raw-img 0.002 42` | `./client 127.0.0.1 5050 gatto ../out 100` |
-| Case 2 | `cd Part2_Case2; ./server 5050 ../dataset/raw-img 0.01 42` | `./client 127.0.0.1 5050 gatto ../out 20` |
-| Enhanced, threads | `cd Part2_Case2_Enhanced; ./server 5050 ../dataset/raw-img 0.01 42` | `./client 127.0.0.1 5050 gatto ../out 4 20 threads` |
+| Case 1 | `cd Part2_Case1; ./server 5050 ../dataset/raw-img 0.5 42` | `./client 127.0.0.1 5050 gatto ../out 100` |
+| Case 2 | `cd Part2_Case2; ./server 5050 ../dataset/raw-img 0.5 42` | `./client 127.0.0.1 5050 gatto ../out 20` |
+| Enhanced, threads | `cd Part2_Case2_Enhanced; ./server 5050 ../dataset/raw-img 0.5 42` | `./client 127.0.0.1 5050 gatto ../out 4 20 threads` |
 | Enhanced, poll | same server | `./client 127.0.0.1 5050 gatto ../out 4 20 poll` |
 
-The third server argument is the failure probability p (per 64 KB chunk; see README), the
-fourth is the optional seed (same seed, same fault positions). Real outputs (small dataset):
+The third server argument is the failure probability p: the chance that a **connection** is
+cut, at a random byte of its data (see README and DEVIATIONS 28). The fourth is the optional
+seed (same seed, same faults). With p = 0.5 about every second connection is cut, so run the
+client a few times (or change the seed) to see different cuts. Real outputs (small dataset,
+p = 0.5, seed 42):
 
-Case 1, p = 0.002, seed 42 (the whole topic is sent again after the cut):
+Case 1 (this run was lucky: no cut. After a cut the whole topic is sent again and the
+client prints `attempt 1/100 failed after ... data bytes` and the redundant bytes):
 ```
-[client] attempt 1/100 failed after 3410144 data bytes: connection lost (closed by the server); retrying in 50 ms
-[client] 2 attempt(s), 7164069 data bytes received in total (3410144 redundant)
-gatto: 167 files, 3753925 bytes in 0.061 s (61.87 MB/s)
+[client] 1 attempt(s), 3753925 data bytes received in total (0 redundant)
+gatto: 167 files, 3753925 bytes in 0.019 s (192.60 MB/s)
 ```
-Case 2, p = 0.01, seed 42 (resumes at the byte where it was cut, nothing redundant):
+Case 2 (after a cut it prints `connection lost at file F offset O; resuming` and resumes at
+exactly that byte, nothing redundant):
 ```
 [client] session started: 167 files, 3753925 bytes
-[client] connection lost at file 147 offset 3081; resuming in 50 ms
-[client] attempts=2 reconnects=1 rejects=0
-gatto: 167 files, 3753925 bytes in 0.068 s (55.24 MB/s)
+[client] attempts=1 reconnects=0 rejects=0
+gatto: 167 files, 3753925 bytes in 0.072 s (52.23 MB/s)
 ```
-Enhanced, p = 0.01, seed 42, K = 4, threads (the failed file is re-queued at its offset):
+Enhanced, K = 4, threads (the failed file is re-queued at its offset):
 ```
-[client] [conn 4] lost at file 160 offset 4803 (closed by the server); re-queued file 160 at offset 4803, retry in 50 ms
-gatto: 167 files, 3753925 bytes in 0.055 s (68.05 MB/s), k=4, io=threads
+[client] gatto: 167 files, 3753925 bytes; new session, k=4
+[client] [conn 4] lost at file 2 offset 5243 (closed by the server); re-queued file 2 at offset 5243, retry in 50 ms
+[client] 5 connection(s) opened (0 after a failure), 0 FETCH(es) rejected, 3753925 data bytes received
+gatto: 167 files, 3753925 bytes in 0.052 s (71.55 MB/s), k=4, io=threads
 ```
+The server prints one line per cut, e.g.
+`[server] conn 4: FAULT injected: cut in file #2 '<name>' at byte 5243, connection closed`.
 Always verify with `tests/verify_output.sh dataset/raw-img/gatto out/gatto`. Exit code
 `echo $?`: 0 ok, 2 gave up, 1 error. Try `p = 1` to see a client give up (exit 2).
 
@@ -154,9 +161,10 @@ needs a sysctl). Fallback: `--mode local` runs everything on 127.0.0.1 (smoke te
 
 ## 7. The real 3-PC experiments
 
-This section produces the numbers for the report. Plan about 7-8 hours of lab time in total
-(Part I about 1 h 15 min, Part II about 5 h 15 min, buffers about 40 min), and split Part II
-over sessions if needed (see "Long sweeps").
+This section produces the numbers for the report. Plan a few hours of lab time in total
+(Part I about 1 h 15 min, buffers about 40 min; Part II has 300 runs, each a few seconds to a
+minute: the runner prints an ETA after every run), and split Part II over sessions if needed
+(see "Long sweeps").
 
 ### 7.1 Roles and preparation
 
@@ -205,17 +213,17 @@ Look first, then run (from S, repo root):
 ```
 tools/exp/run_part1.sh --mode ssh --dry-run          # prints every command, runs nothing
 tools/exp/run_part1.sh --mode ssh --yes              # Part I: 72 runs, about 1 h 15 min
-tools/exp/run_part2.sh --mode ssh --part1-compare --yes    # Part II: 342 runs, about 5 h 15 min
+tools/exp/run_part2.sh --mode ssh --part1-compare --yes    # Part II: 300 runs (ETA printed)
 tools/exp/run_buffers.sh --mode ssh --yes            # buffers: 40 runs, about 40 min
 ```
 Each script ends with `sweep ... finished. Raw data in .../Results/raw/<sweep>` and prints the
 `analyze.py`/`plot.py` commands to run next. The dry run header shows the run count
-(`runs: 72`, `runs: 342`) and which hosts and paths will be used: read it.
+(`runs: 72`, `runs: 300`) and which hosts and paths will be used: read it.
 
 Long sweeps:
 - Interrupted (Ctrl-C, ssh dropped)? Run the **same command** again with `--resume`; finished
   runs are skipped.
-- Split Part II across sessions: `--cases case1`, `--cases case2,enh`, or `--ps 0,0.001`. All
+- Split Part II across sessions: `--cases case1`, `--cases case2,enh`, or `--ps 0,0.1,0.2`. All
   runs land in the same folder.
 - Do not use A, B or S for other heavy work while a sweep runs.
 
@@ -275,7 +283,7 @@ each graph as `.png` and `.pdf` in `Results/`:
 | **Throughput vs overhead** | `Part2_ThroughputVsOverhead` (goodput against overhead, one point per case and p) |
 | Socket buffers | `Buffers_throughput` |
 
-Metrics, the DNF rule (a run where a client gave up or timed out) and the design 4.4
+Metrics, the DNF rule (a run where a client gave up or timed out) and the fault-model
 predictions are explained in `tools/exp/README.md` section 4. Runs that did not finish are drawn
 as an "x" labelled DNF; mention them in the report instead of hiding them.
 Test the scripts without lab data (never copy this output into `Results/`):
@@ -296,14 +304,20 @@ python3 tools/exp/plot.py --results /tmp/fake/results
    ```
    It syncs and checks `common/`, copies README.md, the report, the four Part folders (sources
    and Makefile only) and `Results/` into `FinalSubmission_Group_006_043/`, creates
-   `FinalSubmission_Group_006_043.tar.gz` (default folder `dist/`), then extracts it into a temp
-   dir and checks: layout, `make` with zero warnings, exactly `server` + `client` per Part folder,
-   and one real Part I transfer compared byte for byte.
+   `FinalSubmission_Group_006_043.tar.gz` (default folder `dist/`; add `--zip` for a `.zip`
+   instead, the guidelines accept both), then extracts it into a temp dir and checks: layout,
+   `make` with zero warnings, exactly `server` + `client` per Part folder, that the archive's
+   README names no file outside the archive, and one real transfer per case (Part II at
+   p = 0.5, only the required arguments) compared byte for byte.
+   The archive's README.md is generated from the repository README: blocks between
+   `<!-- repo-only -->` and `<!-- /repo-only -->` are dropped, and the hidden
+   `<!-- archive-only ... archive-only -->` blocks are switched on. Edit both kinds when you
+   change README.md.
 3. It must end with `RESULT: PASS` and **no** `WARNING: ... MISSING` banner. Without the report
    it still passes but prints a loud warning: that archive is not submittable.
 4. Final look: `tar -tzf dist/FinalSubmission_Group_006_043.tar.gz | head -40`. The only
    top-level entries are the PDF, `README.md`, `Part1`, `Part2_Case1`, `Part2_Case2`,
-   `Part2_Case2_Enhanced`, `Results`. Submit the single `.tar.gz`, not loose files.
+   `Part2_Case2_Enhanced`, `Results`. Submit the single archive, not loose files.
 
 ## 10. Troubleshooting
 
@@ -314,7 +328,7 @@ python3 tools/exp/plot.py --results /tmp/fake/results
 | Client: `server error 404: unknown topic` | The topic is not a folder of `topics_root_dir`; check `ls dataset/raw-img` and the path given to the server. The server prints `N topic(s) loaded`: it should say 10. |
 | Server says `error: topics_root_dir '...': No such file or directory` (exit 1), or loads `0 topic(s)` | Wrong dataset path. It must be the folder that **contains** the topic folders (`dataset/raw-img`, not `dataset/raw-img/gatto`). Relative paths are relative to where you started the server (`../dataset/raw-img` from a Part folder). |
 | Part I client prints `server busy (503); retrying in ... ms` | Normal with more than 256 simultaneous clients: the server has 256 threads, the client waits (back-off) and asks again, up to 100 tries, then exits 1. |
-| Case 1 client exits 2 / run counted DNF at high p | Expected, not a bug. Case 1 re-sends the whole topic, and an attempt of N chunks succeeds with probability (1-p)^N. For `gatto` N is about 1 700, so at p = 0.01 that is about 5e-8 per attempt: it never finishes within `max_retries`. Design section 4.4 predicts this; report it as DNF and show the predicted curve. Case 2 and Enhanced avoid it by resuming. |
+| Case 1 client exits 2 / run counted DNF | Only at p = 1 (every connection is cut) or with a very high p and a small `max_retries`: an attempt succeeds with probability 1-p, so with the default 100 retries a client gives up with probability p^100 (at p = 0.9 about 3e-5). Case 2 and Enhanced only give up after 20 attempts in a row without progress. |
 | Sweep clients time out although the network is fine | Clocks not synchronised (manual mode), or other heavy processes on A/B/S. Check `timedatectl`. |
 | `ssh ... Permission denied` in a sweep | Passwordless ssh not set up: `ssh-copy-id`, then `ssh user@ip true` must not prompt. |
 | `plot.py`: `matplotlib is not installed` | `sudo dnf install python3-matplotlib` or `sudo apt install python3-matplotlib` (or `pip install matplotlib`). `analyze.py` does not need it. |

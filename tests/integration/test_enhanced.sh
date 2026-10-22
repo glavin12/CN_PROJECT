@@ -8,13 +8,13 @@
 # One MANIFEST connection, then K workers FETCH one file at a time from a
 # shared queue; a failed worker re-queues (file, .part size) and reconnects
 # (design 3.8, 6.2; enh_client.h; DEVIATIONS 11, 13). Checks:
-#   - K in {1,2,4,8} x io in {threads, poll} at p = 0.05: exact output and
+#   - K in {1,2,4,8} x io in {threads, poll} at p = 0.3: exact output and
 #     server data_bytes == topic bytes (no redundant bytes);
 #   - p = 0, K = 4: at least 4 worker rows (kind=fetch) in the server CSV;
 #   - p = 0: empty topic -> empty dir; other edge topics; defaults (4 args);
 #   - cut at any byte (faultproxy), both io modes;
 #   - kill -9 + restart with K = 4: completes, re-receives only missing bytes;
-#   - p = 1 on 'tiny' -> exit 2; 4 concurrent clients at p = 0.05.
+#   - p = 1 on 'tiny' -> exit 2; 4 concurrent clients at p = 0.3.
 # Topic "names250" replaces "names" here: see make_names250 in lib.sh.
 set -euo pipefail
 source "$(dirname "$0")/lib.sh"
@@ -28,12 +28,13 @@ make_names250 "$DATA"
 IO_MODES=(threads poll)
 
 # ---------------------------------------------------------------------------------
-section "K x io at p = 0.05 (seed 1): exact output, no redundant bytes"
+section "K x io at p = 0.3 (seed 1): exact output, no redundant bytes"
+MATRIX_FAULTS=0
 for k in 1 2 4 8; do
     for io in "${IO_MODES[@]}"; do
         port=$(pick_port)
         srv=$TEST_TMP/matrix.$k.$io.server.csv
-        FDS_LOG=$srv start_server "$F" "$port" "$DATA" 0.05 1
+        FDS_LOG=$srv FDS_EVENTS=$srv.ev start_server "$F" "$port" "$DATA" 0.3 1
         out=$(mktemp_dir "m$k$io")
         declare -A rx=()
         for t in many boundary; do
@@ -51,8 +52,10 @@ for k in 1 2 4 8; do
             check_eq "K=$k io=$io '$t': client data_bytes_rx = topic bytes" "${rx[$t]}" "$tb"
         done
         unset rx
+        MATRIX_FAULTS=$((MATRIX_FAULTS + $(csv_count "$srv.ev" event=FAULT)))
     done
 done
+check "faults were injected in the K x io runs ($MATRIX_FAULTS)" test "$MATRIX_FAULTS" -gt 3
 
 # ---------------------------------------------------------------------------------
 section "p = 0: worker connections, edge topics, defaults"
@@ -81,10 +84,10 @@ check "p=0 K=4 'many': at least 4 kind=fetch rows ($(csv_count "$SRV" kind=fetch
 check "MANIFEST connections logged as kind=manifest" test "$(csv_count "$SRV" kind=manifest)" -ge 1
 
 # ---------------------------------------------------------------------------------
-section "4 concurrent clients, K = 4, p = 0.05"
+section "4 concurrent clients, K = 4, p = 0.3"
 PORT=$(pick_port)
 SRV=$TEST_TMP/conc.server.csv
-FDS_LOG=$SRV start_server "$F" "$PORT" "$DATA" 0.05 3
+FDS_LOG=$SRV start_server "$F" "$PORT" "$DATA" 0.3 3
 CONC=$(mktemp_dir conc)
 pids=()
 for i in 0 1 2 3; do
@@ -168,7 +171,7 @@ restart_run threads
 if is_quick; then skip "restart with io=poll (--quick)"; else restart_run poll; fi
 
 # ---------------------------------------------------------------------------------
-section "p = 1: no progress possible on 1-byte chunks"
+section "p = 1: every connection is cut, the topic never completes"
 PORT=$(pick_port)
 start_server "$F" "$PORT" "$DATA" 1 1
 for io in "${IO_MODES[@]}"; do

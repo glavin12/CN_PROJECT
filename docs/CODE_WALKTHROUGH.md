@@ -112,7 +112,7 @@ each folder:
 
 One consequence you may be asked about: `transfer.c` is compiled into Part I
 as well, but Part I never installs a fault hook (`conn_t.fault_hook` stays NULL,
-`transfer.c:246`), and `fault.c` is not even linked there.
+`transfer.c:249`), and `fault.c` is not even linked there.
 
 ### 1.5 Build and flags
 
@@ -223,13 +223,13 @@ per-chunk framing. Reasons:
   interleave `send(header)` and `sendfile()`.
 - The receiver knows the count from the header (`file_size - start_offset`), so it needs
   no terminator. `recv_msg` (`protocol.c:815`) deliberately stops after the metadata for
-  FILE_HDR; `recv_file` (`transfer.c:497`) then reads exactly `remaining` bytes with plain
+  FILE_HDR; `recv_file` (`transfer.c:500`) then reads exactly `remaining` bytes with plain
   `recv()` and expects `FILE_END`.
 - The price: if a fault ends the stream in the middle of the raw bytes, the receiver
   sees EOF inside a file. That is exactly how it detects the failure (`RX_LOST`).
 
 Also: because the server may not send an `ERROR` in the middle of raw bytes (the client
-would read it as file data), `data_failed` (`transfer.c:193`) just closes the connection
+would read it as file data), `data_failed` (`transfer.c:194`) just closes the connection
 on a file error in mid-stream.
 
 ---------------------------------------------------------------------------
@@ -380,7 +380,7 @@ flag); one struct per message (`m_topic_begin_t`, `m_file_hdr_t`, `m_resume_t`,
 **Tricky details.**
 
 - EOF at a message boundary is "normal", EOF inside a message is a failure. The server relies on
-  this: the Enhanced FETCH loop treats `NET_EOF` as "client's queue is empty" (`Part2_Case2_Enhanced/server.c:331`).
+  this: the Enhanced FETCH loop treats `NET_EOF` as "client's queue is empty" (`Part2_Case2_Enhanced/server.c:343`).
 - The free-the-payload convention: `*payload` is set to NULL on entry (`protocol.c:821`), so
   `free(*payload)` is safe on every path.
 - Validation is symmetrical: encoders and decoders apply the same checks, so a bug on the sending
@@ -477,7 +477,7 @@ them. A re-scan only adds topics: it builds a new pointer array and swaps it in.
 - Freeing `old` after the swap is safe: readers touch `m->topics` only under the read lock, and the write lock
   waited for all of them to leave (`:564-570`).
 - A consequence worth knowing: files added to an EXISTING topic after load are not picked up. A topic is an
-  immutable snapshot. `send_file_range` therefore uses the size from the map, not `fstat` (`transfer.c:25-27`).
+  immutable snapshot. `send_file_range` therefore uses the size from the map, not `fstat` (`transfer.c:26-28`).
 
 **Other tricky details.**
 
@@ -493,13 +493,13 @@ Two halves: server streaming and client receiving.
 
 #### Server side
 
-**Key data structures.** `src_t` (`transfer.c:75`): the open file descriptor, whether `sendfile` is still in use,
+**Key data structures.** `src_t` (`transfer.c:76`): the open file descriptor, whether `sendfile` is still in use,
 whether it ever worked, and a lazily allocated fallback buffer. `xfer_rc_t` (`transfer.h`): `XFER_OK`, `XFER_FAULT`,
 `XFER_PEER`, `XFER_IOERR`.
 
 **Key functions.**
 
-- `serve_topic(c, t, session_id, from_idx, from_off, send_begin)` (`transfer.c:341`): validates the resume point
+- `serve_topic(c, t, session_id, from_idx, from_off, send_begin)` (`transfer.c:344`): validates the resume point
   (`from_idx == n_files` is allowed); optionally sends `TOPIC_BEGIN` with `MSG_MORE` (`:367`); loops
   `send_file_range` from `from_idx` (first file at `from_off`, later ones at 0); sends `TOPIC_END` (no `MSG_MORE`).
 - `send_file_range(c, t, idx, off)` (`:268`): checks the range; builds the path as `abs_path/name` (never a
@@ -547,7 +547,7 @@ whether it ever worked, and a lazily allocated fallback buffer. `xfer_rc_t` (`tr
 
 **Key functions.**
 
-- `recv_expect(rx, want, &payload, &len)` (`transfer.c:394`): `recv_msg`; EOF/error -> `RX_LOST`; bad header ->
+- `recv_expect(rx, want, &payload, &len)` (`transfer.c:397`): `recv_msg`; EOF/error -> `RX_LOST`; bad header ->
   `RX_PROTO`; `ERROR` -> `RX_SERVER_ERR`; `RESUME_REJECT` -> `RX_REJECT`; a type other than `want` -> `RX_PROTO`.
 - `recv_file(rx, &hdr)` (`:497`): validates the header; calls `on_file_hdr`; opens the target:
   - `RX_DIRECT` or `start_offset == 0`: `open(O_TRUNC)` of `<name>` (direct) or `<name>.part`;
@@ -649,7 +649,7 @@ sessions, `session_create` fails and the server answers 503 "session table full"
    (`:757`) so `pthread_join` does not hang. SIGINT/SIGTERM stay blocked on purpose.
 6. The condition variable uses `CLOCK_MONOTONIC` (`pthread_condattr_setclock`, `:633`) so a wall-clock change cannot stretch the grace.
 7. The Enhanced server's FETCH loop checks `server_stopping()` between files: "finish the file in flight, take no new one"
-   (`Part2_Case2_Enhanced/server.c:327`).
+   (`Part2_Case2_Enhanced/server.c:339`).
 
 **The drain before `end_ns`.** `drain_until_peer_closes` (`:292`) runs after a normal end of service (status "OK"): `shutdown(SHUT_WR)` (we
 are done sending), then wait with `wait_readable` and a non-blocking `recv` until it returns 0 (the client closed), data/an error, or the
@@ -671,28 +671,42 @@ only afterwards (`:227`).
 
 ### 3.8 fault (`fault.h`, `fault.c`) - Part II servers only
 
-**Responsibility.** Decide, per 64 KB chunk, whether to cut the connection.
+**Responsibility.** Decide, once per connection, whether and where to cut it (Deviation 28).
 
-**Key data structure.** `fault_state_t` (`fault.h:30`): `p`, a `struct drand48_data rng`, counters. One per connection, on the worker thread's
-stack (`case1_serve`, `Part2_Case1/server.c:170`; `serve_client`, `Part2_Case2/server.c:234`; `enhanced_serve`, `Part2_Case2_Enhanced/server.c:397`),
-installed in `conn_t.fault_hook` / `fault_state`, and cleared before the function returns so nothing can reach the dead stack frame.
+**Key data structure.** `fault_state_t` (`fault.h:41`): `p`, a `struct drand48_data rng`, the plan (`planned`, `doomed`, `cut_at`), the
+byte counter `pos` and two counters. One per connection, on the worker thread's stack (`case1_serve`, `Part2_Case1/server.c:177`;
+`serve_client`, `Part2_Case2/server.c:254`; `enhanced_serve`, `Part2_Case2_Enhanced/server.c:411`), installed in `conn_t.fault_hook` /
+`fault_state`, and cleared before the function returns so nothing can reach the dead stack frame.
 
 **Key functions.**
 
-- `fault_should_fail(state, chunk_len, &prefix)` (`fault.c:136`):
-  - if `!(p > 0)` or `chunk_len == 0`: return 0 without drawing (so p = 0 behaves exactly like Part I; the `!(p > 0)` form also treats NaN as 0);
-  - `drand48_r(&rng, &r)` gives a uniform `r` in [0,1); if `r < p` -> fault;
-  - a SECOND draw `r2` picks `prefix = floor(r2 * chunk_len)`, clamped to `chunk_len - 1`;
-  - returns 1 with `*prefix` set.
-- `fault_init(f, p, have_seed, seed, conn_id)` (`fault.c:92`): seeds the 48-bit state with `seed48_r`.
-- `mix64` (`fault.c:82`): the splitmix64 finaliser (a bijection where every input bit affects every output bit).
+- `fault_init(f, p, have_seed, seed, conn_id)` (`fault.c:101`): seeds the 48-bit state with `seed48_r`. No decision yet.
+- `fault_plan(f, bytes)` (`fault.c:140`): the connection's ONE decision, called by the server when it accepts the first data request
+  and knows how many file bytes it will send for it:
+  - does nothing if already planned or if `bytes == 0` (a 0-byte request leaves the decision to the next one);
+  - `!(p > 0)`: planned, never cut, no draw (so p = 0 behaves exactly like Part I; the form also treats NaN as 0);
+  - `drand48_r(&rng, &r)`: uniform `r` in [0,1); cut iff `r < p`;
+  - a SECOND draw `r2` picks `cut_at = floor(r2 * bytes)`, clamped to `bytes - 1`: a uniform byte of the request.
+- `fault_should_fail(state, chunk_len, &prefix)` (`fault.c:175`): the hook, called before every chunk. It counts the bytes offered so
+  far (`pos`); for the chunk that contains `cut_at` it returns 1 with `*prefix = cut_at - pos`. At most one fault per connection.
+- `mix64` (`fault.c:91`): the splitmix64 finaliser (a bijection where every input bit affects every output bit).
 
 **When and how (what to say if asked "document when and how the failure decision is made").**
 
-- WHEN: inside `send_chunks` (`transfer.c:246`), immediately before each chunk of file data is sent. Headers and control messages never get a draw. A 0-byte
-  file has no chunk and no draw. A reconnection is a new connection with its own generator and fresh draws.
-- HOW: one independent uniform draw per chunk; fault iff `r < p`. So p is a per-64-KB-chunk probability (not per connection, not per session).
-  On a fault: send `prefix` bytes of the chunk, log `FAULT`, `shutdown(SHUT_RDWR)` + `close()`, end that connection's thread; the server keeps running.
+- WHEN: once per connection, when its first data request is accepted: Case 1 `GET` -> the whole topic (`Part2_Case1/server.c:162`);
+  Case 2 `GET` -> the whole topic (`Part2_Case2/server.c:170`), `RESUME` -> the rest of the topic from the checkpoint
+  (`bytes_from`, `Part2_Case2/server.c:243`); Enhanced: the connection's first `FETCH` -> the rest of that file
+  (`Part2_Case2_Enhanced/server.c:319`). Headers and control messages never get a decision. A reconnection is a new connection
+  with its own generator and a fresh decision.
+- HOW: one uniform draw, cut iff `r < p`, so p is the probability that a connection is interrupted. The cut byte is uniform in the
+  request's data. `send_chunks` (`transfer.c:249`) asks the hook before every chunk; the hook says which chunk holds the cut and how
+  many of its bytes still go out. Then: log `FAULT`, `shutdown(SHUT_RDWR)` + `close()`, end that connection's thread; the server
+  keeps running.
+- Why per connection and not per chunk (the design's choice): the guidelines define p as "how frequently the client-server
+  session is interrupted". Per chunk, a Case 1 attempt survives with probability `(1 - p)^N`; for gatto (N about 1 800) Case 1 gave
+  up at every p >= 0.01, so an automated test at p = 0.1 would fail Case 1. Per connection, every case finishes for any p < 1.
+- Why Enhanced cuts in the FIRST FETCH: the server cannot know which later FETCHes the client will send on that connection, so it
+  places the cut in the one request it knows. Each of the K connections is cut with probability p.
 
 **drand48_r and hashed seeding (Deviation 20).**
 
@@ -701,12 +715,14 @@ installed in `conn_t.fault_hook` / `fault_state`, and cleared before the functio
 - Seeding: the design said `srand48_r(seed ^ conn_id)`. Problem found in our emulated dry run: the repetitions use seeds 1001, 1002, ..., which differ
   only in low bits, so `{1001 ^ c}` and `{1002 ^ c}` over conn_ids 1..32 share 30 of 32 values. Two "independent" repetitions replayed the same fault
   sequences in a different order (both Case 1 runs at p = 0.01 gave exactly 28 faults). The code now uses
-  `h = mix64(mix64(seed) ^ conn_id)` and loads three 16-bit words of `h` into `seed48_r` (`fault.c:100-105`). Same `seed` -> same fault positions
+  `h = mix64(mix64(seed) ^ conn_id)` and loads three 16-bit words of `h` into `seed48_r` (`fault.c:109-114`). Same `seed` -> same fault positions
   (repeatable); different seeds or conn_ids -> unrelated sequences.
-- Without a seed: wall time, thread id, conn_id and monotonic time are each mixed in with the same hash (`fault.c:117-121`).
+- Without a seed: wall time, thread id, conn_id and monotonic time are each mixed in with the same hash (`fault.c:126-130`).
 
-**Tricky details.** The second draw only happens on a fault, which is the last draw on the connection, so it never changes WHICH chunk faults.
-`_Static_assert(__builtin_types_compatible_p(...))` (`fault.c:75`) proves at compile time that `fault_should_fail` has the hook's type.
+**Tricky details.** The cut byte depends only on the two draws and the request size, not on how the data is split into chunks
+(a unit test checks 64 KB chunks against 333-byte chunks). `cut_at < bytes` guarantees that at least one byte of the request is lost,
+so every fault really forces a recovery; at p = 1 every connection is cut before its last byte, so nothing can finish.
+`_Static_assert(__builtin_types_compatible_p(...))` (`fault.c:84`) proves at compile time that `fault_should_fail` has the hook's type.
 
 ### 3.9 session (`session.h`, `session.c`) - Case 2 and Enhanced servers
 
@@ -763,7 +779,7 @@ Case 2 `next_file = file_index, file_off_sent = offset, reconnects++` (record mo
 - The session pointer `slot->topic` is a `const topic_t *`; pointer equality is the "same topic" test (works because of Deviation 3).
 - Memory: the `sent_off` array is allocated before locking in `session_create` and freed after unlocking (`:169`, `:193`), so the allocator does not run inside
   the critical section. `fill_slot_locked` returns the old array for the caller to free.
-- The Enhanced MANIFEST creates the session INTERRUPTED until the first FETCH arrives (`Part2_Case2_Enhanced/server.c:190`), so an unused session does not pin a slot.
+- The Enhanced MANIFEST creates the session INTERRUPTED until the first FETCH arrives (`Part2_Case2_Enhanced/server.c:198`), so an unused session does not pin a slot.
 - A session released with `SESS_FREE` frees its array (`:388`).
 
 ### 3.10 checkpoint (`checkpoint.h`, `checkpoint.c`) - Case 2 and Enhanced clients
@@ -842,9 +858,9 @@ Common to both modes:
 3. `S: accept_loop` (`server_core.c:508`) -> `handle_new_conn` (`:432`) sets timeouts/NODELAY, allocates `conn_t`.
 4. `S: part1_serve` (`Part1/server.c:130`): `read_get_request` (`:73`: `conn_recv_request`, 30 s absolute deadline, <= 512 bytes, must be `MSG_GET`, `dec_get`; otherwise `ERROR 400`), `topic_find_or_rescan` (`:143`; unknown
    -> `ERROR 404`), copy the canonical key into `c->topic`, `serve_topic(c, t, zero_sid, 0, 0, 1)` (`:151`).
-5. `S: serve_topic` (`transfer.c:341`): `TOPIC_BEGIN` (session id all zero), then for each file `send_file_range` (`FILE_HDR` with `MSG_MORE`, sendfile chunks, `FILE_END`),
+5. `S: serve_topic` (`transfer.c:344`): `TOPIC_BEGIN` (session id all zero), then for each file `send_file_range` (`FILE_HDR` with `MSG_MORE`, sendfile chunks, `FILE_END`),
    then `TOPIC_END`.
-6. `C: receive_topic` (`:170`): `recv_expect(TOPIC_BEGIN)`, `dec_topic_begin`, `recv_topic` (`transfer.c:600`) -> for each `FILE_HDR`, `recv_file` (RX_DIRECT: `open O_TRUNC`, `recv`+`write` loop,
+6. `C: receive_topic` (`:170`): `recv_expect(TOPIC_BEGIN)`, `dec_topic_begin`, `recv_topic` (`transfer.c:603`) -> for each `FILE_HDR`, `recv_file` (RX_DIRECT: `open O_TRUNC`, `recv`+`write` loop,
    `FILE_END`), until `TOPIC_END`.
 7. `C: totals_agree` (`:221`): the three views must agree: TOPIC_BEGIN counts/bytes, TOPIC_END counts/bytes, what was stored. Prints one line, writes the CSV row, exit 0.
 8. `S: run_conn` (`server_core.c:392`): status "OK" -> `drain_until_peer_closes` (client closes right after TOPIC_END) -> `finish_conn` (CSV row, close, free).
@@ -860,11 +876,11 @@ Difference between modes (the only one): `handle_new_conn` (`server_core.c:465`)
 
 ### 4.2 Case 1 with a fault and restart
 
-Server: `case1_serve` (`Part2_Case1/server.c:170`) does `fault_init(&f, p, have_seed, seed, conn_id)` and installs `fault_should_fail` as the hook, then `serve_get` (`:136`) - identical to Part I.
+Server: `case1_serve` (`Part2_Case1/server.c:175`) does `fault_init(&f, p, have_seed, seed, conn_id)` and installs `fault_should_fail` as the hook, then `serve_get` (`:136`) - identical to Part I.
 
 1. `C: fetch_with_retries` (`Part2_Case1/client.c:319`) loop: `r->attempts++`, `run_attempt` (`:290`): `connect_to_server` (`:169`; sets 15 s `SO_RCVTIMEO`/`SO_SNDTIMEO`), `send_get`,
    `receive_topic` (`:208`: resets `next_index = 0` and `stored_bytes = 0` for the new attempt).
-2. `S: send_chunks` (`transfer.c:234`) draws before every chunk. Suppose the draw faults in file #57: the server sends a random prefix of that chunk, logs a `FAULT` event
+2. `S: send_chunks` (`transfer.c:236`) draws before every chunk. Suppose the draw faults in file #57: the server sends a random prefix of that chunk, logs a `FAULT` event
    (`inject_fault`, `:215`), calls `conn_abort` (shutdown + close), `serve_client` returns, `finish_conn` writes the CSV row (`faulted=1`, status "FAULT").
 3. `C:` the `recv` in `recv_file` returns 0 (FIN) -> `RX_LOST` -> `classify` (`:250`) -> `ATTEMPT_RETRY` ("connection lost (closed by the server)").
 4. Retry policy in `fetch_with_retries`: if `attempts >= max_retries` -> print "giving up" and **exit 2**. Otherwise `streak = (data_bytes grew) ? 0 : streak + 1`;
@@ -878,7 +894,7 @@ Real run (`p = 0.01`, seed 1001, a 3.75 MB topic): 9 attempts, 14 241 917 data b
 
 ### 4.3 Case 2: a fault, RESUME, validation, and a client `kill -9` + restart
 
-Server `serve_client` (`Part2_Case2/server.c:234`) installs the fault state and the `on_progress` hook (`:84`), reads the first message with `conn_recv_request` and dispatches: `MSG_GET` -> `handle_get` (`:127`),
+Server `serve_client` (`Part2_Case2/server.c:252`) installs the fault state and the `on_progress` hook (`:84`), reads the first message with `conn_recv_request` and dispatches: `MSG_GET` -> `handle_get` (`:127`),
 `MSG_RESUME` -> `handle_resume` (`:178`), anything else -> ERROR 400.
 
 **First connection (phase 1).**
@@ -905,7 +921,7 @@ It cuts the connection. The client's `recv` returns 0 -> `RX_LOST` -> `ATT_RETRY
    but a zeroed `.session` looks like one, and two such clients must not share one adopted record; Enhanced already did this); `topic_find_or_rescan`, `session_validate_resume(...)` (the 5 checks). `rc > 0` -> `reject_resume` (`:159`: sends `RESUME_REJECT(reason)`, status "REJECT", logs
    `RESUME_REJECT`); `rc < 0` -> ERROR 503. `rc == 0` -> `bind_session`, send `RESUME_OK(file_index, offset)`, log `RESUME_OK`, `serve_topic(c, t, id, file_index, offset, 0)` (no TOPIC_BEGIN) - this sends
    `FILE_HDR(start_offset = offset)`, only the missing bytes (sendfile reads from that offset), then the later files and `TOPIC_END`.
-8. `C: recv_file` with `start_offset > 0`: `reopen_part` (`transfer.c:454`) checks the `.part` is at least `start_offset` long, `ftruncate`s to exactly `start_offset`, appends. No stored byte is received again.
+8. `C: recv_file` with `start_offset > 0`: `reopen_part` (`transfer.c:457`) checks the `.part` is at least `start_offset` long, `ftruncate`s to exactly `start_offset`, appends. No stored byte is received again.
 9. `TOPIC_END`: `finish_topic` (`:420`) compares counts and (if this process saw TOPIC_BEGIN) byte totals; `ckpt_clear` removes `.session`; exit 0. The directory then holds only the topic files.
 
 **RESUME_REJECT (phase 5).** `handle_reject` (`:449`): count it, `discard_download` (`remove_partials`, reset counters) and `run_transfer` goes straight back to `GET` with NO back-off (`ATT_REJECTED`, `:610`).
@@ -924,7 +940,7 @@ The server answered, so it is not overloaded. A reject counts toward the no-prog
 
 ### 4.4 Case 2 Enhanced: MANIFEST, K workers, FETCH, a fault and re-queue
 
-Server side: `enhanced_serve` (`Part2_Case2_Enhanced/server.c:397`) -> `serve_first` (`:359`), which dispatches on the first message: `MSG_MANIFEST_REQ` -> `serve_manifest` (`:124`), `MSG_FETCH` ->
+Server side: `enhanced_serve` (`Part2_Case2_Enhanced/server.c:409`) -> `serve_first` (`:359`), which dispatches on the first message: `MSG_MANIFEST_REQ` -> `serve_manifest` (`:124`), `MSG_FETCH` ->
 `serve_fetches` (`:316`), else ERROR 400. Both `serve_first` and the FETCH loop read with `conn_recv_request`.
 
 **Step 1: MANIFEST (client `enh_fetch_manifest`, `client.c:386`).**
@@ -1040,7 +1056,7 @@ can return any number of bytes and the rest may arrive after other sockets were 
 ### 5.3 How fds and memory are released on fault paths
 
 - Server: a fault calls `conn_abort` (`server_core.c:149`): `shutdown_close` and `fd = -1`. `finish_conn` closes only if `fd >= 0` and ALWAYS frees the `conn_t` and decrements `g_active`; that is on every
-  path out of `run_conn` (served, faulted, error, refused). `send_file_range` closes the source file and frees the fallback buffer on every path (`transfer.c:335-337`). The fault state is on the stack and the hook
+  path out of `run_conn` (served, faulted, error, refused). `send_file_range` closes the source file and frees the fallback buffer on every path (`transfer.c:338-340`). The fault state is on the stack and the hook
   pointers are cleared before return. `recv_msg` and `conn_recv_request` free their buffer on error and the callers free the payload (`free(payload)` is safe because it is initialised to NULL).
 - Client: `recv_file` frees its buffer and `close`s the output on every failure path, leaving the `.part` on disk on purpose (it is the checkpoint). `enh_run_threads` joins every started worker on every path (`:839`),
   `workq_destroy` is called only after all threads are joined (`free_pass`, `client.c:899`); `enh_run_poll` calls `cleanup` (`client_poll.c:1119`) and frees `slots` and `buf`. `manifest_free` / `free(e->done)`.
@@ -1078,7 +1094,7 @@ Event rows: `FAULT,...,21,0,22,573612,"prefix=6951/18071"` (file 21, chunk began
 
 ### 6.2 data_bytes vs wire_bytes
 
-- `data_bytes`: file payload bytes handed to the socket (what `sendfile` returned, including a fault's partial chunk). Updated in `account` (`transfer.c:175`).
+- `data_bytes`: file payload bytes handed to the socket (what `sendfile` returned, including a fault's partial chunk). Updated in `account` (`transfer.c:176`).
 - `wire_bytes`: `data_bytes` + every header/control byte sent. Control messages are added in `conn_send` (`server_core.c:172`); `account` adds the data. In the run above 573 612 data vs 575 086 wire: the difference of 1 474 is
   headers (TOPIC_BEGIN, FILE_HDRs, FILE_ENDs).
 - Client side: `data_bytes_rx` counts file bytes received and written (including re-received ones in Case 1); `wire_bytes_rx` counts every byte read (`recv_msg` adds the header + payload, `recv_file` adds raw bytes).
@@ -1093,7 +1109,7 @@ the client machines' clocks are not precisely synchronised; client-side figures 
 
 ### 6.4 `tools/exp/analyze.py`
 
-Reads every CSV under `--raw`, recognises the type by its header (`classify`, `analyze.py:121`), groups rows by `run_id`, and ignores warm-up runs (`_warmup` suffix). Per run (`run_metrics`, `:278`):
+Reads every CSV under `--raw`, recognises the type by its header (`classify`, `analyze.py:123`), groups rows by `run_id`, and ignores warm-up runs (`_warmup` suffix). Per run (`run_metrics`, `:278`):
 
 - `throughput = Σ server data_bytes / span`, where `span = max end_ns − min start_ns` over connections with `kind != "-"` (`:294-306`).
 - `total_MB = Σ data_bytes`; `wire_MB = Σ wire_bytes`.
@@ -1104,20 +1120,20 @@ Reads every CSV under `--raw`, recognises the type by its header (`classify`, `a
 - A run is OK only if every client finished OK; DNF (a client gave up or was killed by the time-out) and failed runs are counted but EXCLUDED from the means. `aggregate` (`:416`) reports mean and sample standard deviation
   (`statistics.stdev`) over the OK repetitions.
 
-Design §4.4 predictions (`predictions`, `:209`; needs `--dataset` to know the real chunk sizes). `N` = number of 64 KB chunks of the topic, `T` = topic bytes, `q = 1 − p`, `P = q^N`:
+Fault-model predictions (`predictions`, `:211`; needs `--dataset` to know `T`). Deviation 28: every connection is cut with probability p,
+at a uniform byte of its first request. `T` = topic bytes, `q = 1 − p`:
 
-- Case 1: `pred_attempts = 1 / P`; `pred_chunks_per_client = (1 − P) / (p · P)` (expected number of chunk draws, faulted chunks included); `pred_faults = n_clients · (attempts − 1)`;
-  `pred_overhead_pct` is the EXACT expected overhead for the real chunk sizes: a failed attempt sends every chunk before the faulted one plus a uniform random prefix of `0..c−1` bytes of it (Deviation 9):
-  `E = T + (1/P) Σ_j q^(j−1) p (S_(j−1) + (c_j − 1)/2)` (`:231-239`); `pred_dnf_run_prob = 1 − (1 − (1 − P)^100)^n_clients` (probability that some client hits 100 failed attempts).
-- Case 2 / Enhanced: `pred_faults = n_clients · N · p / q`; `pred_overhead_pct = 0`.
+- Case 1: `pred_attempts = 1 / q`; `pred_faults = n_clients · p / q`; `pred_overhead_pct = (p / q) · ((T − 1) / 2) / T · 100` (each cut
+  wastes on average half the topic); `pred_dnf_run_prob = 1 − (1 − p^100)^n_clients` (probability that some client has all 100 attempts cut).
+- Case 2: `pred_faults = n_clients · p / q`; Enhanced: `n_clients · K · p / q` (an upper bound); `pred_overhead_pct = 0` for both.
 
 It also prints a consistency note when `|faults − reconnects| > max(2, 10%)` (`:382-391`); Enhanced runs are skipped because their `reconnects` can legitimately be lower (Deviation 24). Outputs: `Part1_summary.csv`, `Part2_summary.csv`, `Buffers_summary.csv`, `all_runs.csv`, `summary.md`.
 
 ### 6.5 What the numbers should show (so you can explain results)
 
 - Part I: single-threaded aggregate throughput stays flat as N grows (one client at a time); multi-threaded grows and then saturates at the network / disk limit.
-- Case 1: overhead grows exponentially with N·p (expected attempts `(1 − p)^−N`); runs hit the retry cap (DNF) for large p.
-- Case 2/Enhanced: overhead is zero in data bytes; the only cost is control messages of each reconnect plus back-off time. Faults grow linearly, `≈ N·p`.
+- Case 1: expected attempts `1/(1 − p)`, redundant bytes about `p/(1 − p) × T/2`, so overhead grows steeply as p approaches 1 (about 50 % at p = 0.5, 450 % at p = 0.9); it only gives up at p = 1 (or with probability p^100).
+- Case 2/Enhanced: overhead is zero in data bytes; the only cost is control messages of each reconnect plus back-off time. Faults per client `≈ p/(1 − p)` (Case 2) and up to `K·p/(1 − p)` (Enhanced, each of the K connections can be cut).
 
 ---------------------------------------------------------------------------
 
@@ -1134,7 +1150,7 @@ Mirrors design §9 plus the deviations. Format: decision -> alternative -> why w
 | Topic map: sorted array with cached file lists | Re-scan the directory per request; hash table | About 10 topics: binary search is as fast as a hash and simpler; the cache avoids disk scans and gives stable file indices for Case 2. |
 | Concurrency: thread per client (cap 256) | Thread pool; single-threaded event loop (epoll) | Required by Part II, simplest correct design for tens of clients. A pool bounds resources but adds queueing delay. An event loop only pays off with thousands of connections. 256 cap limits resources. |
 | Single vs multi: runtime argument | Two programs; compile-time flag | The grader needs exactly one `server` per folder; one build serves both experiments and `./server <port> <dir>` still works. |
-| Fault decision: independent draw before EVERY 64 KB chunk | One draw per connection with a random cut point; a separate killer thread | Gives p one precise meaning in every case (per 64 KB chunk), makes `(1 − p)^N` explicit, uses only the worker's own state. A per-connection draw hides the exposure-grows-with-data effect. A killer thread would race with the worker on the same socket. |
+| Fault decision: one draw per connection, cut at a uniform byte of its first request (Deviation 28; the design drew per 64 KB chunk) | Independent draw before every 64 KB chunk; a separate killer thread | Matches the guidelines ("how frequently the session is interrupted"); every case finishes for p < 1, so Case 1 vs Case 2 differ in wasted bytes, not in whether they finish; uses only the worker's own state. Per chunk, Case 1 could not finish a real topic at p >= 0.01. A killer thread would race with the worker on the same socket. |
 | RNG: `drand48_r` with per-thread state | `rand()`/`drand48()`; `rand_r()` | `rand`/`drand48` use hidden global state (not thread-safe); `rand_r` is obsolescent; `drand48_r` is thread-safe and seedable. |
 | Interruption: `shutdown()` then `close()` | Abortive close with `SO_LINGER` (RST) | Deterministic: the client receives every byte sent before the cut and then end-of-stream, so byte accounting is exact. (Deviation 9 refined this: a random prefix of the faulted chunk is sent first.) |
 | Case 1 restart: overwrite files in place (`O_TRUNC`) | Delete the output directory and restart | Simpler, and still retransmits the whole topic as Case 1 requires. |
@@ -1163,7 +1179,7 @@ Mirrors design §9 plus the deviations. Format: decision -> alternative -> why w
 | 12 | Session slot reuse order: FREE, oldest DONE, idle > 300 s, oldest INTERRUPTED; fresh ACTIVE never evicted (else 503) | 256 slots expiring after 300 s | Long experiment series must not run out of slots; a stale session must not pin one. |
 | 13 | Enhanced restart rebuilds the queue from MANIFEST + disk; back-off resets after progress; FETCH never pipelined | Re-queue (file, offset) | Restart-safety; unread data at `close()` makes it an RST that discards queued bytes. |
 | 14 | `accept_loop` and `signal_thread` in shared `server_core.c` | In each `server.c` | One implementation of the thread model. |
-| 15 | p in {0, 1e-4, 2e-4, 5e-4, 1e-3, 2e-3, 5e-3, 1e-2}; K in {1, 2, 4, 8}; wire bytes also counted; throughput-vs-overhead plot | Smaller sets | Case 1 gets measured points before its DNF cliff; K = 1 separates parallelism from per-file cost; the guidelines ask for throughput vs overhead. |
+| 15 | p in {0, 0.1, 0.2, 0.3, 0.5, 0.7, 0.9} (per connection, see 28); K in {1, 2, 4, 8}; wire bytes also counted; throughput-vs-overhead plot | Smaller sets | With p per connection every case finishes for p < 1, so the sweep covers the whole range; K = 1 separates parallelism from per-file cost; the guidelines ask for throughput vs overhead. |
 | 16 | `getaddrinfo`, 10 s connect time-out, backlog `SOMAXCONN` | `tcp_connect(ip, port)` | Robustness. |
 | 17 | Added `util` and `server_core`; `transfer` holds the client `recv_file`/`recv_topic` | - | Shared code. |
 | 18 | Back-off counter = consecutive attempts that received no file data; after a cut that received data wait 50 ms | Doubling between all attempts | After an injected fault the server is healthy; long waits would only inflate completion time. |
@@ -1194,7 +1210,7 @@ TCP is a byte stream with no message boundaries. Files contain arbitrary bytes, 
 
 **Q3. What happens if `recv()` returns fewer bytes than I asked for?**
 That is normal for TCP, so we never assume a single `recv` fills a buffer. `recvall` (`net.c:70`) loops until all `n` bytes have arrived, returning `NET_EOF` if the peer closes early. `sendall` (`net.c:41`) does the same for
-`send`. The file-data loop in `recv_file` (`transfer.c:545`) deliberately uses plain `recv` and processes whatever arrives, because each piece must be written to disk immediately.
+`send`. The file-data loop in `recv_file` (`transfer.c:548`) deliberately uses plain `recv` and processes whatever arrives, because each piece must be written to disk immediately.
 
 **Q4. Blocking vs non-blocking sockets: what is the difference and where do you use each?**
 A blocking `recv`/`send`/`accept` puts the thread to sleep until it can complete; a non-blocking one returns at once with `EAGAIN` if it cannot. Everything uses blocking sockets with `SO_RCVTIMEO`/`SO_SNDTIMEO` except the
@@ -1214,14 +1230,19 @@ Single mode (`server_core.c:465`) serves one client at a time from the main thre
 time grows linearly. Multi mode overlaps transfers (one detached thread each), so aggregate throughput rises with N until the network or disk saturates. The exact numbers come from `Results/` (produced by
 `tools/exp/run_part1.sh` and `analyze.py`); do not quote numbers you have not looked up. The mechanism is what the viva asks.
 
-**Q8. How is the failure probability p applied, and why per chunk?**
-In `send_chunks` (`transfer.c:246`) the fault hook runs before every chunk of at most 64 KB: `fault_should_fail` (`fault.c:136`) draws `r` from `drand48_r` and the connection is cut iff `r < p`. So p is the probability
-of a fault per 64 KB sent, in every case. We chose per chunk (not per connection) because it gives p one precise meaning, makes the chance of a clean transfer `(1 − p)^N` depend on how much data must be moved, and uses only
-the worker's own state. A per-connection draw would hide that exposure effect (design §9).
+**Q8. How is the failure probability p applied, and why per connection?**
+Once per connection: when the server accepts the connection's first data request, `fault_plan` (`fault.c:140`) draws `r` from
+`drand48_r` and the connection will be cut iff `r < p`; a second draw picks the cut byte uniformly in that request's data. `send_chunks`
+(`transfer.c:249`) asks the hook before every chunk, and the chunk holding the cut byte is sent only up to it. So p is the probability
+that a connection is interrupted, as the guidelines put it ("how frequently the client-server session is interrupted"). The design drew
+per 64 KB chunk instead; we changed it (Deviation 28) because then a Case 1 attempt over N chunks survives with probability `(1 − p)^N`,
+and on a real topic (gatto, N about 1 800) Case 1 could never finish at p >= 0.01.
 
 **Q9. What is the expected number of attempts in Case 1?**
-An attempt succeeds only if all N chunk draws pass, with probability `(1 − p)^N`, so the number of attempts is geometric with mean `1/(1 − p)^N` (`analyze.py:224`). Example from design §4.4: N = 1700, p = 0.001 gives
-`(0.999)^1700 ≈ 0.18`, so about 5.5 attempts; p = 0.005 gives about 5 000 attempts, which is why Case 1 hits the 100-attempt cap (DNF) for p >= 0.005 on a topic of that size. Redundant data grows exponentially with N·p.
+Every attempt is a new connection, cut with probability p independently, so the number of attempts is geometric with mean `1/(1 − p)`
+(`predictions` in `analyze.py:211`): 2 at p = 0.5, 10 at p = 0.9. Each failed attempt wastes a uniform part of the topic, (T − 1)/2 bytes
+on average, so the redundant bytes are about `p/(1 − p) × T/2`. The client gives up only if all 100 attempts are cut: probability p^100
+(about 3e-5 at p = 0.9). Case 2 needs the same number of connections, but redundant bytes are 0 because it resumes at the cut byte.
 
 **Q10. Why does Case 2 have zero redundant bytes?**
 Every chunk is sent exactly once: the client's `.part` size is the exact number of bytes stored (each `recv` is written before the next), the client reports it in `RESUME`, and `sendfile` starts at exactly that offset
@@ -1272,12 +1293,12 @@ manifest size.
 
 **Q20. Why TCP_NODELAY and why also MSG_MORE? Don't they conflict?**
 They address different problems. `TCP_NODELAY` disables Nagle's algorithm so small requests (FETCH, RESUME) are not held back waiting for an ACK, avoiding a ~40 ms delayed-ACK stall per file (Deviation 10, `net.c:276`).
-`MSG_MORE` is a per-call hint that more data follows immediately: the `FILE_HDR` is sent with `MSG_MORE` (`transfer.c:313`) so the kernel puts it in the same segment as the first data bytes instead of a tiny packet of its own.
+`MSG_MORE` is a per-call hint that more data follows immediately: the `FILE_HDR` is sent with `MSG_MORE` (`transfer.c:316`) so the kernel puts it in the same segment as the first data bytes instead of a tiny packet of its own.
 The final `FILE_END`/`TOPIC_END` go without `MSG_MORE` so they are flushed at once.
 
 **Q21. What is `sendfile` and what does zero-copy mean?**
 `sendfile(out_fd, in_fd, &offset, count)` moves data from the file's page cache directly to the socket inside the kernel, avoiding the `read()` into a user buffer and `send()` from it (two copies and two syscalls per piece).
-It takes an explicit offset (so resume is natural) and returns how many bytes it moved, possibly fewer than requested (so we loop, `transfer.c:132`). Fallback: `pread`+`send` if the file system rejects `sendfile`
+It takes an explicit offset (so resume is natural) and returns how many bytes it moved, possibly fewer than requested (so we loop, `transfer.c:133`). Fallback: `pread`+`send` if the file system rejects `sendfile`
 (`EINVAL`/`ENOSYS`, `:147`). It is "zero-copy" in user space; the kernel still copies/DMA's into socket buffers.
 
 **Q22. Why `clock_gettime(CLOCK_MONOTONIC)`?**
@@ -1302,7 +1323,7 @@ takes the write lock for two stores (`topic_map.c:522-575`). `topic_t` objects a
 
 **Q27. Why is only one FETCH outstanding per connection (no pipelining)?**
 If the client sent FETCH #j while #i was still streaming and a fault then cut the connection during #i, the server's `close()` would find unread data (FETCH #j) in its receive buffer. On Linux that makes `close()` send an RST instead
-of a FIN, and an RST makes the client's kernel discard bytes it had queued but not yet read. The prefix of #i that the server counted as sent would be lost and byte accounting would break (`Part2_Case2_Enhanced/server.c:35-46`,
+of a FIN, and an RST makes the client's kernel discard bytes it had queued but not yet read. The prefix of #i that the server counted as sent would be lost and byte accounting would break (`Part2_Case2_Enhanced/server.c:36-47`,
 Deviation 13). The cost is one RTT per file, hidden by K connections. For the same reason `refuse_busy` drains the unread request before closing.
 
 **Q28. What is the "busy" counter in the work queue?**
@@ -1354,7 +1375,7 @@ Case 1: the number of ATTEMPTS (every attempt counts); exit 2 when reached (defa
 (usage, 404, protocol error, local I/O error), 2 gave up.
 
 **Q37. Why can the run never finish at p = 1?**
-Every chunk draw faults, and each fault leaves at least one byte of the chunk unsent (`prefix < chunk_len`, `transfer.c:250`). Case 1 never gets a clean attempt. Case 2/Enhanced advance by a random prefix each time, but a chunk of
+Every chunk draw faults, and each fault leaves at least one byte of the chunk unsent (`prefix < chunk_len`, `transfer.c:253`). Case 1 never gets a clean attempt. Case 2/Enhanced advance by a random prefix each time, but a chunk of
 remaining length n shrinks to at most 1 byte left, where prefix is always 0 and no progress is made; after `max_retries` consecutive attempts without progress they exit 2 (Deviation 9; `test_case2.sh` checks p = 1 -> exit 2).
 
 **Q38. What does `topic_find` do with "Cane" vs "cane"?**
@@ -1399,10 +1420,11 @@ Be ready to be honest about these if asked; none affects correctness of the tran
 versions of this list are fixed and removed: the stale `seed ^ conn_id` header comments, and the `analyze.py`
 faults-vs-reconnects note for Enhanced runs, which now skips Enhanced, Deviation 24.)
 
-1. **Prediction formula.** The design §4.4 formula for expected Case 1 chunks transmitted is `(1−p)(1−(1−p)^N)/(p(1−p)^N)` and the code (`analyze.py:226`) uses `(1−P)/(p·P)`. They differ by the factor `(1−p)`: the code counts the
-   draw of the faulted chunk (a partial chunk is sent since Deviation 9), the design formula did not. The byte-level overhead prediction (`pred_overhead_pct`) is exact.
+1. **Prediction formulas.** With the per-connection fault model (Deviation 28) the predictions in `predictions()` (`analyze.py:211`) are
+   simple: attempts `1/(1−p)`, faults `p/(1−p)` per client (up to `K·p/(1−p)` for Enhanced), Case 1 overhead `p/(1−p) × (T−1)/2 ÷ T`.
+   The Enhanced fault count is an upper bound: a worker whose queue is already empty does not reconnect after a cut.
 2. **`sendfile` and SIGPIPE** rely on a process-wide `SIG_IGN` set in `server_run` (`server_core.c:680`). That is fine for our programs, but any new caller of `send_file_range` outside `server_run` must also ignore SIGPIPE
    (documented at `transfer.c:13-16` and in the comment block at `transfer.h:27-32`).
-3. **Mixed return convention** of `session_validate_resume`: 0 = OK, 1..5 = reject reason, -1 = table full. The callers test `rc < 0` before `rc > 0` (`Part2_Case2/server.c:204-213`).
+3. **Mixed return convention** of `session_validate_resume`: 0 = OK, 1..5 = reject reason, -1 = table full. The callers test `rc < 0` before `rc > 0` (`Part2_Case2/server.c:221-230`).
 4. **Known limitation (Deviation 19):** Case 2 and Enhanced cannot resume files whose name is longer than 250 bytes (`<name>.part` must fit in 255).
 5. **Case 1 is expected to give up on large topics at moderate p** (not a bug): an attempt of N chunks succeeds with probability (1−p)^N, so for example `many`/`big` at p = 0.05 end with exit 2 (`max_retries` = 100). Say so with the formula; Case 2 and Enhanced are the answer to it.

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 #
 # run_part2.sh - Part II experiment (design 6.6 + deviation 15): Case 1,
-# Case 2 and Case 2 Enhanced against the per-64-KB-chunk fault probability p.
+# Case 2 and Case 2 Enhanced against the per-connection fault probability p (deviation 28).
 #
 # Default sweep:
-#   p in {0, 0.0001, 0.0002, 0.0005, 0.001, 0.002, 0.005, 0.01}
+#   p in {0, 0.1, 0.2, 0.3, 0.5, 0.7, 0.9}
 #   implementations ("cases"):
 #     case1          Part2_Case1,          client max_retries 100
 #     case2          Part2_Case2,          client max_retries 20
@@ -34,7 +34,7 @@ usage() {
 usage: tools/exp/run_part2.sh --mode emu|local|ssh|manual [options]
 
 Part II options:
-  --ps <list>            fault probabilities (default 0,0.0001,0.0002,0.0005,0.001,0.002,0.005,0.01)
+  --ps <list>            fault probabilities (default 0,0.1,0.2,0.3,0.5,0.7,0.9)
   --cases <list>         which implementations (default: all). Names: case1 case2
                          enh_K1 enh_K2 enh_K4 enh_K8 enh_K4_poll, or the groups
                          enh (all Enhanced), enh_threads, enh_poll
@@ -65,12 +65,12 @@ while (($#)); do
 done
 
 if [[ "${OPT[quick]:-0}" == 1 ]]; then
-    : "${OPT[ps]:=0,0.001,0.01}" "${OPT[cases]:=case1,case2,enh_K4,enh_K4_poll}" \
+    : "${OPT[ps]:=0,0.3,0.7}" "${OPT[cases]:=case1,case2,enh_K4,enh_K4_poll}" \
         "${OPT[reps]:=2}" "${OPT[warmup]:=1}"
 fi
 exp_finalize
 
-PS_LIST="$(split_list "${OPT[ps]:-0,0.0001,0.0002,0.0005,0.001,0.002,0.005,0.01}")"
+PS_LIST="$(split_list "${OPT[ps]:-0,0.1,0.2,0.3,0.5,0.7,0.9}")"
 KS_LIST="$(split_list "${OPT[ks]:-1,2,4,8}")"
 POLL_KS_LIST="$(split_list "${OPT[poll-ks]:-4}")"
 CLIENTS="${OPT[clients]:-4}"
@@ -104,13 +104,14 @@ impl_selected() {
 # p <= x ? (floating point, via awk)
 p_le() { awk -v p="$1" -v x="$2" 'BEGIN { exit !(p <= x) }'; }
 
-# Manual-mode slot per run. Case 1 at large p retries ~100 times with up to
-# 1 s back-off before it gives up, so its slots are longer.
+# Manual-mode slot per run. Case 1 needs 1/(1-p) attempts on average and each
+# failed one sends about half the topic (10 attempts at p = 0.9), so its slots
+# are longer at large p.
 slot_for() {
     local impl=$1 p=$2
     case "$impl" in
         case1)
-            if p_le "$p" 0.0005; then echo 60; elif p_le "$p" 0.002; then echo 120; else echo 180; fi ;;
+            if p_le "$p" 0.5; then echo 60; else echo 120; fi ;;
         case2) echo 60 ;;
         *) echo 45 ;;
     esac

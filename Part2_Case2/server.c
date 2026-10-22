@@ -37,13 +37,17 @@
  * the topic itself, so a server that lost the record (restart, eviction) can
  * still resume safely: session_validate_resume() then adopts the client's id.
  *
- * Fault injection (design section 4, deviation 9): every connection has its
- * own drand48_r() generator, seeded from a hash of (seed, conn_id) (or of
- * time, thread id and conn_id without a seed; deviation 20). transfer.c calls c->fault_hook immediately before
- * each 64 KB chunk of file data; with probability p it sends a random prefix
- * of that chunk and then shutdown()+close()s the connection. Control messages
- * never get a draw. The session record keeps what was really handed to the
- * socket, prefix included, so the client's RESUME after the cut is accepted.
+ * Fault injection (design section 4, deviations 9 and 28): every connection
+ * has its own drand48_r() generator, seeded from a hash of (seed, conn_id)
+ * (or of time, thread id and conn_id without a seed; deviation 20). Once the
+ * GET or RESUME is accepted, fault_plan() takes the connection's one
+ * decision: with probability p it is cut at a uniformly random byte of the
+ * data still to send (the whole topic after a GET, the rest from the
+ * checkpoint after a RESUME). transfer.c stops at that byte and then
+ * shutdown()+close()s the connection. Control messages never get a
+ * decision. The session record keeps what was really handed to the socket,
+ * the bytes before the cut included, so the client's RESUME after the cut is
+ * accepted.
  */
 #include "fds.h"
 #include "fault.h"
@@ -68,7 +72,7 @@ static void usage(const char *prog)
 {
     fprintf(stderr,
             "usage: %s <port> <topics_root_dir> <failure_probability> [seed]\n"
-            "  failure_probability  real number in [0, 1]: chance of a cut per 64 KB chunk\n"
+            "  failure_probability  real number in [0, 1]: chance that a connection is cut\n"
             "  seed                 optional integer; makes the fault positions repeatable\n",
             prog);
     exit(FDS_EXIT_FATAL);
@@ -119,6 +123,18 @@ static void end_session(conn_t *c, xfer_rc_t rc)
     session_set_state(c->session_id, SESS_INTERRUPTED);
 }
 
+/* File data bytes from (file_index, offset) to the end of the topic: what a
+ * RESUME to that checkpoint will send. The checkpoint has passed checks 2 and
+ * 4, so file_index < n_files and offset <= that file's size. */
+static uint64_t bytes_from(const topic_t *t, uint32_t file_index, uint64_t offset)
+{
+    uint64_t n = t->files[file_index].size - offset;
+
+    for (uint32_t i = file_index + 1; i < t->n_files; i++)
+        n += t->files[i].size;
+    return n;
+}
+
 /*
  * Phase 1: GET <topic>. A new session is created for every GET, even when the
  * same client had one before: a GET means the client has no usable checkpoint
@@ -151,6 +167,7 @@ static void handle_get(conn_t *c, const uint8_t *payload, size_t len)
     }
     bind_session(c, id);
     log_event("SESSION_NEW", c->conn_id, id, t->key, -1, 0, 0, 0, NULL);
+    fault_plan(c->fault_state, t->total_bytes);        /* the whole topic */
     end_session(c, serve_topic(c, t, id, 0, 0, 1));
 }
 
@@ -223,6 +240,7 @@ static void handle_resume(conn_t *c, const uint8_t *payload, size_t len)
     }
     log_event("RESUME_OK", c->conn_id, m.session_id, t->key, (int64_t)m.file_index,
               m.offset, 0, 0, NULL);
+    fault_plan(c->fault_state, bytes_from(t, m.file_index, m.offset));
     end_session(c, serve_topic(c, t, m.session_id, m.file_index, m.offset, 0));
 }
 

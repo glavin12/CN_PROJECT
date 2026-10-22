@@ -19,7 +19,7 @@ suggest (Partname_CaseName_throughput.png / _overhead.png):
   Part2_Enhanced_ThreadsVsPoll      blocking threads vs non-blocking poll client
   Buffers_throughput                socket-buffer experiment
 
-Conventions: p on a symlog axis (p = 0 at the left edge), error bars = sample
+Conventions: p on a linear axis (a per-connection probability), error bars = sample
 sd over the repetitions, MB = 10^6 bytes. A configuration in which every
 repetition was DNF is drawn as an "x" at the top of the plot with "DNF";
 partly-DNF points carry a "k/n DNF" note. Each case keeps its colour and
@@ -128,20 +128,15 @@ def v(r, k):
 # ---- axes helpers -------------------------------------------------------------
 
 def p_axis(ax, ps):
-    """Symlog x axis for p: linear near 0 (so p = 0 is drawn), log above 1e-4."""
-    nz = [p for p in ps if p > 0]
-    lin = min(nz) if nz else 1e-4
-    ax.set_xscale("symlog", linthresh=lin, linscale=0.6)
+    """Linear x axis for p (a per-connection probability, deviation 28: the
+    sweep spans 0 .. 0.9, so a log axis is not needed)."""
     ticks = sorted(set(ps))
     ax.xaxis.set_major_locator(FixedLocator(ticks))
     ax.xaxis.set_minor_locator(NullLocator())
     ax.xaxis.set_major_formatter(FuncFormatter(lambda x, _pos: "0" if x == 0 else ("%g" % x)))
-    for t in ax.get_xticklabels():
-        t.set_rotation(35)
-        t.set_ha("right")
-    hi = max(ps) if ps else 1e-2
-    ax.set_xlim(-lin * 0.25, hi * 1.35)
-    ax.set_xlabel("fault probability p (per 64 KB chunk)")
+    hi = max(ps) if ps else 1.0
+    ax.set_xlim(-0.03 * hi, hi * 1.06)
+    ax.set_xlabel("fault probability p (per connection)")
 
 
 def n_axis(ax, ns):
@@ -308,7 +303,7 @@ def part2_case_charts(rows, ref, out, made):
             pred = [(r["p"], r["pred_overhead_pct"]) for r in series(rows, impl) if v(r, "pred_overhead_pct") is not None]
             if pred:
                 ax.plot([x for x, _ in pred], [y for _, y in pred], color=INK2, lw=1.1, ls=(0, (1, 2)),
-                        label="predicted (design §4.4)", zorder=2)
+                        label="predicted (p/(1−p) × T/2)", zorder=2)
             p_axis(ax, ps)
             ax.set_yscale("symlog", linthresh=1.0)
             ax.set_ylim(bottom=0)

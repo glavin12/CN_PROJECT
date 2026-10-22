@@ -28,12 +28,15 @@ server). Part II injects connection failures and recovers from them in three way
 ## Requirements
 
 Linux, `gcc` and `make` (clang is optional). Nothing else is needed to build and run.
-Tests need `bash` and `python3`. Sanitizer builds (`make SAN=...`) also need the
-sanitizer runtimes (Fedora: `libasan libubsan libtsan`; Ubuntu: part of gcc). The graphs
-need `python3-matplotlib`.
+Sanitizer builds (`make SAN=...`) also need the sanitizer runtimes (Fedora:
+`libasan libubsan libtsan`; Ubuntu: part of gcc).
+<!-- repo-only -->
+Tests need `bash` and `python3`. The graphs need `python3-matplotlib`.
+<!-- /repo-only -->
 
 ## Folder layout
 
+<!-- repo-only -->
 ```
 README.md  HOW_TO_USE.md  FinalReport_Group_006_043.pdf   (the report is only in the submission)
 Part1/  Part2_Case1/  Part2_Case2/  Part2_Case2_Enhanced/   one Makefile, server.c, client.c each
@@ -45,6 +48,23 @@ tools/  tests/  docs/          scripts, tests, assignment, design document, DEVI
 Every Part folder is self-contained: the shared modules (`util`, `net`, `protocol`, `log`,
 `topic_map`, `transfer`, `server_core`, plus `fault`, `session`, `checkpoint`, `workq` where
 needed) are copies of `common/` made by `tools/sync_common.sh`.
+<!-- /repo-only -->
+<!-- archive-only
+```
+FinalSubmission_Group_006_043/
+  FinalReport_Group_006_043.pdf   the report (design, deviations, performance analysis)
+  README.md                       this file
+  Part1/                          Makefile, server.c, client.c + shared modules
+  Part2_Case1/                    Makefile, server.c, client.c + shared modules
+  Part2_Case2/                    Makefile, server.c, client.c + shared modules
+  Part2_Case2_Enhanced/           Makefile, server.c, client.c, client_poll.c + shared modules
+  Results/                        raw CSV logs (raw/) and graphs (*.png), summary tables
+```
+
+Every Part folder is self-contained: the shared modules (`util`, `net`, `protocol`, `log`,
+`topic_map`, `transfer`, `server_core`, plus `fault`, `session`, `checkpoint`, `workq` where
+needed) are identical copies in each folder, so `make` in one folder needs nothing outside it.
+archive-only -->
 
 ## Build
 
@@ -144,6 +164,50 @@ deletes any old file of the topic's names and any `*.part` in that folder, so st
 | 1 | fatal or usage error (a usage line is printed), e.g. unknown topic, server unreachable |
 | 2 | the client gave up after `max_retries` (Part II) |
 
+### What the programs print, and how to check a run
+
+The client prints **one summary line on stdout** when it succeeds, and its progress
+(reconnects, resumes) on stderr. The server prints the topics it loaded, one line per
+injected fault, and a summary when it is stopped with Ctrl-C. Real output, topic
+`elefante` (1446 files), `p = 0.5`, seed 1:
+
+```
+$ ./client 127.0.0.1 5050 elefante out              # Part2_Case1
+[client] attempt 1/100 failed after 24439539 data bytes: connection lost (closed by the server); retrying in 50 ms
+...
+[client] 5 attempt(s), 144421820 data bytes received in total (100375023 redundant)
+elefante: 1446 files, 44046797 bytes in 0.573 s (76.86 MB/s)          <- stdout
+
+$ ./client 127.0.0.1 5050 elefante out              # Part2_Case2
+[client] session started: 1446 files, 44046797 bytes
+[client] connection lost at file 824 offset 15371; resuming in 50 ms
+...
+[client] attempts=5 reconnects=4 rejects=0
+elefante: 1446 files, 44046797 bytes in 0.418 s (105.25 MB/s)         <- stdout
+
+$ ./client 127.0.0.1 5050 elefante out              # Part2_Case2_Enhanced (defaults: k=4, threads)
+[client] elefante: 1446 files, 44046797 bytes; new session, k=4
+[client] [conn 2] lost at file 1 offset 12360 (closed by the server); re-queued file 1 at offset 12360, retry in 50 ms
+...
+[client] 9 connection(s) opened (4 after a failure), 0 FETCH(es) rejected, 44046797 data bytes received
+elefante: 1446 files, 44046797 bytes in 0.152 s (289.96 MB/s), k=4, io=threads   <- stdout
+
+server side (Part2_Case1 run above):
+[server] listening on port 5050: 10 topic(s), multi mode, p = 0.5
+[server] conn 1: FAULT injected: cut in file #824 'OIP-PjYC6SscebOCVOzccwaFnYwtUeH.jpeg' at byte 15371, connection closed
+...
+[server] summary: 5 connection(s) served (0 refused busy), 144421820 data bytes sent (144823892 on the wire), 4 fault(s) injected
+```
+
+To check a run: the exit code is 0, and the received folder is an exact copy of the topic
+folder, with nothing else in it:
+
+```
+./client 127.0.0.1 5050 elefante out; echo "exit code $?"
+diff -r <topics_root_dir>/elefante out/elefante && echo "identical"
+```
+`FDS_QUIET=1` silences the progress lines (the stdout summary stays).
+
 ### Optional environment variables
 
 Logging and tuning come only from the environment; all are optional.
@@ -159,26 +223,36 @@ Logging and tuning come only from the environment; all are optional.
 
 ## Fault-injection mechanism (Part II)
 
-Defined in `common/fault.h` / `common/fault.c` (design section 4, deviations 9 and 20).
+Defined in `fault.h` / `fault.c` (in every Part II folder).
 
-- **When.** The server decides inside its file-send loop, immediately **before each 64 KB chunk
-  of file data**. Headers, the manifest and control messages never get a draw, and a 0-byte
-  file has no chunk and no draw. A file of 100 KB has 2 chunks, hence 2 draws.
-- **How.** Every connection owns a `drand48_r` generator (thread-safe, no global state). Its
-  48-bit state is a hash of `(seed, conn_id)`, so one `[seed]` reproduces the same fault
-  positions run after run, and every connection gets its own sequence. Without a seed, the hash
-  mixes wall time, thread id, connection id and monotonic time. One draw `r` in [0,1) is taken
-  per chunk; if `r < p`, a second draw picks a prefix length uniformly in `0 .. chunk_len-1`.
-  The server sends that prefix of the chunk, logs a FAULT event, then calls `shutdown()` and
-  `close()`. The client therefore sees the connection die at a random byte, not only at chunk
-  boundaries, which is what exercises byte-offset resume.
-- **Meaning of p.** p is the probability that the connection is cut during any given 64 KB
-  chunk (it is not a per-file or per-session probability). The expected number of faults for a
-  transfer of N chunks is about N*p. `p = 0` never injects a fault. `p = 1` cuts at the very
-  first chunk of every connection, so nothing can finish: the clients give up with exit code 2
-  after `max_retries` attempts.
-- **Case 1 consequence.** An attempt sends N chunks and succeeds with probability `(1-p)^N`,
-  so the number of attempts and the redundant bytes grow quickly with p (design 4.4).
+- **Meaning of p.** p is the probability that a **connection** is interrupted. Every
+  connection is cut with probability p, independently of the others and of the topic
+  size. `p = 0` never injects a fault. `p = 1` cuts every connection before the last byte
+  of its data, so nothing can finish: the clients give up with exit code 2 after
+  `max_retries` attempts.
+- **When the decision is made.** Once per connection, when the server has accepted the
+  connection's first data request and knows how many file bytes it will send for it:
+  the whole topic for a Case 1 `GET`, the rest of the topic from the checkpoint for a
+  Case 2 `GET` or `RESUME`, the rest of the requested file for the first `FETCH` of an
+  Enhanced connection. Control messages (headers, manifest, ...) never get a decision,
+  so every fault interrupts file data. A request with 0 data bytes leaves the decision
+  to the connection's next request.
+- **How the decision is made.** Every connection owns a `drand48_r` generator
+  (thread-safe, no global state). Its 48-bit state is a hash of `(seed, conn_id)`, so one
+  `[seed]` reproduces the same faults run after run, and every connection gets its own
+  sequence. Without a seed, the hash mixes wall time, thread id, connection id and
+  monotonic time. One draw `r` in [0,1): the connection will be cut iff `r < p`. If so, a
+  second draw picks the cut byte uniformly among the data bytes of that request.
+- **What happens at the cut.** The file-send loop checks before every 64 KB chunk whether
+  the cut byte falls inside it. If so, the server sends only the bytes before the cut,
+  prints and logs a `FAULT` line (connection, file, offset), then calls `shutdown()` and
+  `close()`. The client sees the connection die at a random byte, not only at file or
+  chunk boundaries, which is what exercises byte-offset resume. Only that connection
+  ends; the server keeps serving everyone else.
+- **Consequences.** Case 1: an attempt succeeds with probability `1-p`, so a client needs
+  `1/(1-p)` attempts on average and every cut wastes on average half the topic. Case 2:
+  about `p/(1-p)` cuts per transfer and no byte is sent twice. Enhanced: each of the K
+  connections is cut with probability p (during its first file), no byte is sent twice.
 
 ## How each case recovers
 
@@ -197,6 +271,7 @@ Defined in `common/fault.h` / `common/fault.c` (design section 4, deviations 9 a
   `poll` (one thread, non-blocking sockets, `poll()`). The server sends with zero-copy
   `sendfile()`.
 
+<!-- repo-only -->
 ## Testing
 
 ```
@@ -220,5 +295,20 @@ graphs in `Results/` are described step by step in `HOW_TO_USE.md` (repository) 
 ## Deviations from the design document
 
 The implementation differs from the submitted design in a few reviewed places (for example the
-random partial chunk before a cut, and the hashed seed). All of them, with reasons, are
-listed in `docs/DEVIATIONS.md` and are repeated in the Design section of the report.
+per-connection fault probability, the random cut byte and the hashed seed). All of them, with
+reasons, are listed in `docs/DEVIATIONS.md` and are repeated in the Design section of the report.
+<!-- /repo-only -->
+<!-- archive-only
+## Results
+
+`Results/` holds the raw CSV logs of every measured run (`Results/raw/`), the summary tables
+computed from them and the graphs (`Part1_*`, `Part2_Case1_*`, `Part2_Case2_*`,
+`Part2_Case2_Enhanced_*`, `Part2_Comparison_*`: `*_throughput.png` and `*_overhead.png`). The
+experiment setup (three PCs, sweeps, repetitions) and the analysis are in the report.
+
+## Deviations from the design document
+
+The implementation differs from the submitted design in a few reviewed places (for example the
+per-connection fault probability, the random cut byte and the hashed seed). All of them, with
+reasons, are listed in the Design section of `FinalReport_Group_006_043.pdf`.
+archive-only -->

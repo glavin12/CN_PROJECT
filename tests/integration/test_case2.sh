@@ -5,16 +5,16 @@
 #
 # After a fault the client sends RESUME(session, file, offset = .part size)
 # and only the missing bytes are sent (design 3.7, 5; DEVIATIONS 9). Checks:
-#   - p = 0 and p in {0.05, 0.2} x seeds {1, 2}: exact output, no .part/.session;
+#   - p = 0 and p in {0.5, 0.9} x seeds {1, 2}: exact output, no .part/.session;
 #   - NO redundant bytes: server sum(data_bytes) == topic bytes x clients, and
 #     the client received exactly that (fault prefixes are stored, so it is exact);
-#   - FAULT events exist, client reconnects > 0, FAULT events == reconnects;
+#   - FAULT events == reconnects in every run, and faults happened in the section;
 #   - cut at ANY byte (faultproxy, p = 0): also mid-header, many cuts;
 #   - kill -9 of the client, then a restart: .session survives, the rerun
 #     completes, re-receives only the missing bytes, server logs kind=resume;
-#   - p = 1 on 'tiny', max_retries 5 -> exit 2 (DEVIATIONS 9: a 1-byte chunk
-#     can never make progress);
-#   - 4 concurrent clients at p = 0.05.
+#   - p = 1 on 'tiny', max_retries 5 -> exit 2 (DEVIATIONS 28: every
+#     connection is cut before the last byte, so the topic never completes);
+#   - 4 concurrent clients at p = 0.5.
 # Topic "names250" replaces "names" here: see make_names250 in lib.sh.
 set -euo pipefail
 source "$(dirname "$0")/lib.sh"
@@ -46,9 +46,11 @@ done
 check_eq "p=0: server data_bytes = topic bytes for every topic (mismatches:${bad:- none})" "$bad" ""
 
 # ---------------------------------------------------------------------------------
-# fault_run <p> <seed> <topic> <need_faults 0|1>: one server, one logged client.
+# fault_run <p> <seed> <topic>: one server, one logged client. Adds its FAULT
+# events to TOTAL_FAULTS.
+TOTAL_FAULTS=0
 fault_run() {
-    local p=$1 seed=$2 t=$3 need=$4 port srv ev cli out tb sb rx faults rec tag
+    local p=$1 seed=$2 t=$3 port srv ev cli out tb sb rx faults rec tag
     tag="p=$p seed=$seed '$t'"
     port=$(pick_port)
     srv=$TEST_TMP/srv.$((++_SEQ)).csv
@@ -70,35 +72,33 @@ fault_run() {
     check_eq "$tag: no redundant bytes, server data_bytes = topic bytes" "$sb" "$tb"
     check_eq "$tag: client data_bytes_rx = topic bytes" "$rx" "$tb"
     check_eq "$tag: FAULT events = client reconnects" "$faults" "$rec"
-    if (( need )); then
-        check "$tag: faults were injected ($faults) and the client reconnected ($rec)" \
-            test "$faults" -gt 0 -a "$rec" -gt 0
-    fi
+    TOTAL_FAULTS=$((TOTAL_FAULTS + faults))
 }
 
 section "fault injection: resume, no redundant bytes"
 SEEDS=(1 2)
 is_quick && SEEDS=(1)
-for p in 0.05 0.2; do
+for p in 0.5 0.9; do
     for seed in "${SEEDS[@]}"; do
-        fault_run "$p" "$seed" many 1
-        fault_run "$p" "$seed" boundary 0     # only 9 chunks: maybe no fault at all
-        if is_quick && [[ $p == 0.2 ]]; then
+        fault_run "$p" "$seed" many
+        fault_run "$p" "$seed" boundary
+        if is_quick && [[ $p == 0.9 ]]; then
             skip "p=$p seed=$seed 'big' (--quick)"
         else
-            fault_run "$p" "$seed" big 1
+            fault_run "$p" "$seed" big
         fi
     done
 done
-fault_run 0.05 1 names250 0                  # odd names in .session and RESUME
+fault_run 0.9 1 names250                     # odd names in .session and RESUME
+check "faults were injected and resumed in this section ($TOTAL_FAULTS)" test "$TOTAL_FAULTS" -gt 3
 
 # ---------------------------------------------------------------------------------
-section "4 concurrent clients at p = 0.05"
+section "4 concurrent clients at p = 0.5"
 PORT=$(pick_port)
 SRV=$TEST_TMP/conc.server.csv
 EV=$TEST_TMP/conc.events.csv
 CLI=$TEST_TMP/conc.client.csv
-FDS_LOG=$SRV FDS_EVENTS=$EV start_server "$F" "$PORT" "$DATA" 0.05 3
+FDS_LOG=$SRV FDS_EVENTS=$EV start_server "$F" "$PORT" "$DATA" 0.5 3
 CONC=$(mktemp_dir conc)
 pids=()
 for i in 0 1 2 3; do
@@ -178,7 +178,7 @@ check "server CSV has a kind=resume row ($(csv_count "$SRV" kind=resume))" \
     test "$(csv_count "$SRV" kind=resume)" -ge 1
 
 # ---------------------------------------------------------------------------------
-section "p = 1: no progress possible on 1-byte chunks"
+section "p = 1: every connection is cut, the topic never completes"
 PORT=$(pick_port)
 CLI=$TEST_TMP/p1.client.csv
 start_server "$F" "$PORT" "$DATA" 1 1

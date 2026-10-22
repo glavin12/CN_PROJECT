@@ -17,7 +17,8 @@
  *     FETCH(id, #i, off, topic, name) ------>    session_validate_resume (design 5.5,
  *                                                check 5 per file: deviation 11)
  *                              <-------------    FILE_HDR #i (start_offset = off)
- *                              <-------------    bytes [off, size)  (fault draw per 64 KB chunk)
+ *                              <-------------    bytes [off, size)  (cut here if this is the
+ *                                                connection's first FETCH and it was drawn)
  *                              <-------------    FILE_END #i
  *     FETCH(id, #j, ...)       ------------->    ... the next file on the same connection
  *     (client closes when its queue is empty: EOF here is the normal end)
@@ -48,11 +49,18 @@
  * Why the worker connections stay open between files: thousands of small
  * images would otherwise each pay a TCP handshake (and slow start).
  *
- * Fault injection (design section 4, deviation 9): identical to Case 1 and
- * Case 2. Each connection has its own drand48_r() generator (seeded from a
- * hash of (seed, conn_id) with [seed], deviation 20); before every 64 KB chunk one draw r, and r < p cuts the
- * connection after a random prefix of that chunk. Only that connection ends;
- * the client's other K-1 connections and the session are unaffected.
+ * Fault injection (design section 4, deviations 9 and 28): the same rule as
+ * Case 1 and Case 2, one decision per connection. Each connection has its own
+ * drand48_r() generator (seeded from a hash of (seed, conn_id) with [seed],
+ * deviation 20). When its first FETCH is accepted, fault_plan() decides: with
+ * probability p the connection is cut at a uniformly random byte of the data
+ * that FETCH will send. Only that connection ends; the client's other K-1
+ * connections and the session are unaffected. A connection that is not cut
+ * serves the rest of its FETCHes without faults. The server cannot know which
+ * later FETCHes will arrive on the same connection, so the cut is placed in
+ * the one request it does know. Each of the K connections is cut with
+ * probability p, so a parallel transfer sees more cuts than a Case 2 one at
+ * the same p; each costs only the bytes of one file that were in flight.
  *
  * The accept loop, thread cap (503), signal thread and CSV rows are in
  * server_core.c (deviation 14); this file only adds main() + serve_client().
@@ -305,6 +313,10 @@ static fetch_next_t serve_one_fetch(conn_t *c, const uint8_t *payload, size_t le
         log_event("FETCH_RESUME", c->conn_id, m.session_id, t->key, m.file_index,
                   m.offset, 0, c->data_bytes, NULL);
     }
+    /* The connection's one fault decision, on its first FETCH that carries
+     * data (a no-op afterwards). Checks 2 and 4 passed: index and offset are
+     * in range. */
+    fault_plan(c->fault_state, t->files[m.file_index].size - m.offset);
     return after_send(c, send_file_range(c, t, m.file_index, m.offset));
 }
 
