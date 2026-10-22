@@ -10,11 +10,12 @@ scripts: `tools/exp/README.md`. Rules of the project: `CLAUDE.md`.
 |---|---|---|
 | required | `sudo dnf install gcc make python3 git iproute` | `sudo apt install gcc make python3 git iproute2` |
 | graphs | `sudo dnf install python3-matplotlib` | `sudo apt install python3-matplotlib` |
-| unit tests, `SAN=` builds | `sudo dnf install libasan libubsan libtsan` | already part of gcc |
+| sanitizer builds (`SAN=address` / `SAN=thread`) | `sudo dnf install libasan libubsan libtsan` | already part of gcc |
 | optional | `sudo dnf install clang valgrind` | `sudo apt install clang valgrind` |
 
-Without `libasan`, `make -C tests/unit run` fails at link time with
-`cannot find /usr/lib64/libasan.so...`. Check: `gcc --version && python3 -c "import matplotlib"`.
+Plain `make -C tests/unit run` needs no sanitizer. `SAN=address` / `SAN=thread`
+builds fail at link time with `cannot find ... libasan.so` until the sanitizer
+packages are installed. Check: `gcc --version && python3 -c "import matplotlib"`.
 
 ## 2. Getting the code and the dataset
 

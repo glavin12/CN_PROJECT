@@ -1,13 +1,13 @@
 # tests/unit/Makefile - unit tests for the shared modules in ../../common
 #
-#   make -C tests/unit run            build and run every test_*.c (ASan+UBSan by default)
-#   make -C tests/unit run SAN=thread ThreadSanitizer instead
-#   make -C tests/unit run SAN=       no sanitizer
+#   make -C tests/unit run              build and run every test_*.c (no sanitizer)
+#   make -C tests/unit run SAN=address  AddressSanitizer + UBSan (needs libasan, libubsan)
+#   make -C tests/unit run SAN=thread   ThreadSanitizer (needs libtsan)
 #
 # The common modules are compiled into a static library, so a test links only
 # the modules it actually uses (a module that does not exist yet is no problem).
 CC      = gcc
-SAN    ?= address
+SAN    ?=
 BUILD  ?= build
 
 ifeq ($(SAN),address)
