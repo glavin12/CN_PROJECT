@@ -82,8 +82,12 @@ typedef struct {
     uint64_t    data_bytes_rx;    /* file bytes received, including re-received ones */
     uint64_t    wire_bytes_rx;    /* every byte received */
     uint32_t    files;            /* files stored */
-    uint32_t    attempts;         /* connections opened (Enhanced: all workers + manifest) */
-    uint32_t    reconnects;       /* connections opened after a failure */
+    uint32_t    attempts;         /* connection tries, failed connects included
+                                     (Enhanced: manifest + every worker try) */
+    uint32_t    reconnects;       /* tries made after a failure. Case 1/2: attempts - 1.
+                                     Enhanced: can be lower than the number of faults,
+                                     because a re-queued file is often taken by
+                                     another connection that is still open */
     uint32_t    rejects;          /* RESUME_REJECT received */
     const char *status;           /* "OK", "DNF" (gave up) or "FAIL" (fatal error) */
 } log_client_row_t;

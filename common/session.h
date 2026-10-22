@@ -50,7 +50,10 @@ int session_create(const topic_t *t, int enhanced, uint8_t id_out[FDS_SESSION_ID
  *       Enhanced: offset == 0 or offset <= sent_off[file_index]
  *                                                       else FDS_REJ_AHEAD_OF_SENT
  * If the id is unknown (server restarted, entry expired) checks 1-4 suffice:
- * a new ACTIVE entry is created under the client's id.
+ * a new ACTIVE entry is created under the client's id and marked "adopted".
+ * An adopted session skips check 5 for the rest of its life: the server has
+ * no record of what was sent before it adopted the id, so it has no upper
+ * bound to check against (deviation 22). Checks 1-4 still apply.
  * On success the session is ACTIVE, its progress is set to the checkpoint
  * (Case 2: next_file = file_index, file_off_sent = offset), reconnects++ and
  * 0 is returned; otherwise the reject reason (1..5).

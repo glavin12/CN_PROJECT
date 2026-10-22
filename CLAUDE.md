@@ -17,7 +17,7 @@ Sources of truth:
   - Client, all cases: `./client <server_ip> <server_port> <topic> <output_dir>`. Optional trailing arguments:
     - Case 1: `[max_retries=100]`
     - Case 2: `[max_retries=20]`
-    - Enhanced: `[connections=4] [max_retries=20] [io=threads|poll]`
+    - Enhanced: `[connections=4] [max_retries=20] [threads|poll]` (`io=poll` also accepted)
 - The client writes files under `output_dir/<topic exactly as typed>/`. When it succeeds, that directory holds **only** the topic's files (no `.part`, `.session` or tmp files).
 - **Never hard-code a path, port or IP address.** Optional logging comes only from env vars: `FDS_LOG`, `FDS_EVENTS`, `FDS_RUN_ID`, `FDS_CLIENT_ID`, `FDS_SNDBUF`, `FDS_RCVBUF`, `FDS_QUIET`.
 - Exit codes: 0 = OK, 1 = fatal or usage error (print a usage line), 2 = the client gave up after max_retries.

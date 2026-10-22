@@ -179,6 +179,15 @@ static void serve_manifest(conn_t *c, const uint8_t *payload, size_t len)
          */
         c->status = "PEER_LOST";
         session_set_state(sid, SESS_FREE);
+    } else {
+        /*
+         * No connection is using the session until the first FETCH arrives,
+         * which makes it ACTIVE again (session_validate_resume). Marking it
+         * INTERRUPTED meanwhile lets the table evict it if no FETCH ever
+         * comes. A client that resumes after a restart keeps its OLD id, so
+         * this fresh one would otherwise sit ACTIVE, unevictable, for 300 s.
+         */
+        session_set_state(sid, SESS_INTERRUPTED);
     }
     free(buf);
     /* Returning ends the connection: the client opens its K workers next. */

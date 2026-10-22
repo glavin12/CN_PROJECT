@@ -47,7 +47,7 @@
  *     proves the server is up and serving; it was cut by an injected fault,
  *     not by overload, so waiting longer would only inflate the completion
  *     time. After such an attempt the streak resets and the wait is 50 ms
- *     ("back-off resets after progress", deviation 13).
+ *     ("back-off resets after progress", deviation 18).
  *
  * Exit status: 0 success, 1 fatal error, 2 gave up after max_retries.
  */

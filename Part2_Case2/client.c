@@ -63,6 +63,7 @@
 #include <errno.h>
 #include <inttypes.h>
 #include <limits.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -294,14 +295,15 @@ static void close_socket(int fd)
  * and the optional buffer sizes of the buffer experiment. Returns fd or -1. */
 static int open_connection(client_t *cl)
 {
-    int fd = tcp_connect(cl->host, cl->port, FDS_CONNECT_TIMEOUT_S);
+    int fd;
 
+    cl->attempts++;                 /* every try counts, as in Case 1 / Enhanced */
+    fd = tcp_connect(cl->host, cl->port, FDS_CONNECT_TIMEOUT_S);
     if (fd < 0) {
         log_info("cannot connect to %s:%u: %s", cl->host, (unsigned)cl->port, strerror(errno));
         cl->why = "connect failed";
         return -1;
     }
-    cl->attempts++;
     if (set_timeouts(fd, FDS_CLI_TIMEOUT_S, FDS_CLI_TIMEOUT_S) != 0) {
         log_warn("cannot set socket time-outs: %s", strerror(errno));
         close_socket(fd);
@@ -452,6 +454,19 @@ static void handle_reject(client_t *cl)
     discard_download(cl);
 }
 
+/* Fatal errors use the same "[client] error: ..." style as the other clients. */
+static void print_error(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+static void print_error(const char *fmt, ...)
+{
+    va_list ap;
+
+    va_start(ap, fmt);
+    fputs("[client] error: ", stderr);
+    vfprintf(stderr, fmt, ap);
+    fputc('\n', stderr);
+    va_end(ap);
+}
+
 /* Map a failed receive to what the retry loop should do. */
 static attempt_rc_t failure_outcome(client_t *cl, rx_rc_t rc)
 {
@@ -465,22 +480,26 @@ static attempt_rc_t failure_outcome(client_t *cl, rx_rc_t rc)
             cl->why = "server busy";
             return ATT_RETRY;
         }
-        log_warn("server error %u: %s", (unsigned)cl->rx.err.code, cl->rx.err.msg);
+        if (cl->rx.err.code == FDS_ERR_NOT_FOUND)
+            print_error("server error 404: %s (the topic '%s' does not exist on the server)",
+                        cl->rx.err.msg, cl->topic);
+        else
+            print_error("server error %u: %s", (unsigned)cl->rx.err.code, cl->rx.err.msg);
         return ATT_FATAL;
     case RX_PROTO:
-        log_warn("protocol error: unexpected or malformed message from the server");
+        print_error("protocol error: unexpected or malformed message from the server");
         return ATT_FATAL;
     case RX_IOERR:
-        log_warn("local file error while writing into %s", cl->dir);
+        print_error("local file error while writing into %s", cl->dir);
         return ATT_FATAL;
     case RX_REJECT:
-        log_warn("protocol error: RESUME_REJECT outside a resume");
+        print_error("protocol error: RESUME_REJECT outside a resume");
         return ATT_FATAL;
     case RX_OK:
     default:
         break;
     }
-    log_warn("internal error: unexpected receive status %d", (int)rc);
+    print_error("internal error: unexpected receive status %d", (int)rc);
     return ATT_FATAL;
 }
 
@@ -585,7 +604,7 @@ static int run_transfer(client_t *cl)
         else
             streak++;
         if (streak >= cl->max_retries) {
-            log_warn("giving up after %d attempts without progress", streak);
+            fprintf(stderr, "[client] giving up after %d attempts without progress\n", streak);
             return FDS_EXIT_GAVE_UP;
         }
         if (rc == ATT_REJECTED)
@@ -639,10 +658,10 @@ static void report(const client_t *cl, int code)
         double secs = (double)(end_ns - cl->start_ns) / 1e9;
         double mbps = secs > 0 ? (double)cl->end.total_bytes / secs / 1e6 : 0.0;
 
-        printf("OK topic=%s files=%" PRIu32 " bytes=%" PRIu64 " time=%.3fs rate=%.2fMB/s"
-               " attempts=%" PRIu32 " reconnects=%" PRIu32 " rejects=%" PRIu32 "\n",
-               cl->topic, cl->end.file_count, cl->end.total_bytes, secs, mbps,
-               row.attempts, row.reconnects, row.rejects);
+        printf("%s: %" PRIu32 " files, %" PRIu64 " bytes in %.3f s (%.2f MB/s)\n",
+               cl->topic, cl->end.file_count, cl->end.total_bytes, secs, mbps);
+        log_info("attempts=%" PRIu32 " reconnects=%" PRIu32 " rejects=%" PRIu32,
+                 row.attempts, row.reconnects, row.rejects);
         fflush(stdout);
     }
 }

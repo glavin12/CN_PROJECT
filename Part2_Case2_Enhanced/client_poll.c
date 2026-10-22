@@ -83,8 +83,8 @@
  *   is opened that has nothing to fetch, and an ERROR 503 that the server
  *   sends straight after accept() is read as the reply to that FETCH. After a
  *   failure, if the healthy connections drain the queue first, this slot
- *   never reconnects, so `reconnects` counts only connections really opened
- *   again.
+ *   never reconnects, so `reconnects` counts only connection tries actually
+ *   made after a failure (it can be lower than the number of faults).
  *
  * Main loop
  *   1. expire timers: back-off over -> IDLE; connect time-out
@@ -456,22 +456,14 @@ static void start_fetch(engine_t *g, slot_t *s)
 
 /* ---- Connecting -------------------------------------------------------------- */
 
-/* The handshake is complete: set the socket up like enh_connect() does and
- * count the connection, then send the FETCH of the held item. */
+/* The handshake is complete: set the socket up like enh_connect() does,
+ * then send the FETCH of the held item. */
 static void on_connected(engine_t *g, slot_t *s)
 {
-    enh_t *e = g->e;
-
     /* Deviation 10: Nagle + delayed ACK would stall each small FETCH. */
     if (set_nodelay(s->fd) != 0)
         log_warn("[poll slot %d] cannot set TCP_NODELAY: %s", s->id, strerror(errno));
     apply_env_bufsizes(s->fd);
-    pthread_mutex_lock(&e->mu);
-    e->attempts++;
-    if (s->reconnect)
-        e->reconnects++;
-    pthread_mutex_unlock(&e->mu);
-    s->reconnect = 0;
     start_fetch(g, s);
 }
 
@@ -486,8 +478,20 @@ static void start_connect(engine_t *g, slot_t *s)
 {
     /* SOCK_NONBLOCK sets O_NONBLOCK atomically with the socket; SOCK_CLOEXEC
      * keeps it out of any child process. */
-    int fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);
+    enh_t *e = g->e;
+    int fd;
 
+    /* Count every connection try, successful or not, exactly like
+     * enh_connect() in the threads engine, so the CSV columns mean the same
+     * thing for both engines (log.h: attempts / reconnects). */
+    pthread_mutex_lock(&e->mu);
+    e->attempts++;
+    if (s->reconnect)
+        e->reconnects++;
+    pthread_mutex_unlock(&e->mu);
+    s->reconnect = 0;
+
+    fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);
     if (fd < 0) {
         lost_errno(g, s, "socket");
         return;

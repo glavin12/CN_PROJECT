@@ -853,9 +853,15 @@ static void parse_args(int argc, char **argv, enh_t *e)
     if (argc >= 7 && parse_long(argv[6], 1, MAX_RETRIES_LIMIT, &retries) != 0)
         usage(argv[0], "max_retries must be an integer in 1..1000000");
     if (argc >= 8) {
-        if (strcmp(argv[7], "threads") == 0)
+        /* The engine name, written bare ("poll") or as "io=poll": the docs
+         * show the optional argument as [io=threads|poll], so accept both. */
+        const char *io = argv[7];
+
+        if (strncmp(io, "io=", 3) == 0)
+            io += 3;
+        if (strcmp(io, "threads") == 0)
             e->use_poll = 0;
-        else if (strcmp(argv[7], "poll") == 0)
+        else if (strcmp(io, "poll") == 0)
             e->use_poll = 1;
         else
             usage(argv[0], "io must be 'threads' or 'poll'");
