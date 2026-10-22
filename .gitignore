@@ -1,0 +1,24 @@
+# build outputs
+*.o
+*.d
+Part1/server
+Part1/client
+Part2_Case1/server
+Part2_Case1/client
+Part2_Case2/server
+Part2_Case2/client
+Part2_Case2_Enhanced/server
+Part2_Case2_Enhanced/client
+tests/unit/build/
+# datasets and run outputs (large, regenerate locally)
+dataset/
+/out/
+/runs/
+/dist/
+__pycache__/
+*.pyc
+# never commit raw experiment scratch; final CSV/PNG go in Results/
+Results/raw/scratch/
+
+# agent worktrees
+.claude/
