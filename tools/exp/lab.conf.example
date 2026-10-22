@@ -1,0 +1,44 @@
+# lab.conf - settings of the real 3-PC lab for tools/exp/run_*.sh
+#
+# Copy this file to tools/exp/lab.conf on the SERVER PC (S) and edit it:
+#     cp tools/exp/lab.conf.example tools/exp/lab.conf
+# It is plain bash (KEY=value, no spaces around '='). Command-line options
+# such as --dataset, --port and --server-ip override the values here.
+# lab.conf holds your lab's IPs and user names: do not commit it.
+
+# IP address of the server PC S, as A and B reach it (ip -br addr on S).
+SERVER_IP=192.168.1.10
+
+# ssh targets of the two client PCs (ssh mode). Passwordless ssh from S is
+# needed:  ssh-keygen -t ed25519   (once, on S)
+#          ssh-copy-id student@192.168.1.11 ; ssh-copy-id student@192.168.1.12
+CLIENT_A=student@192.168.1.11
+CLIENT_B=student@192.168.1.12
+
+# Path of this repository on A and B (built there with make). Default: the
+# same path as on S.
+#REMOTE_REPO=/home/student/comp_net
+
+# topics_root_dir on S (one sub-folder per topic, e.g. .../raw-img/gatto).
+DATASET=/home/student/comp_net/dataset/raw-img
+
+# TCP port of the server (open it in S's firewall:
+#   Fedora: sudo firewall-cmd --add-port=5050/tcp     Ubuntu: sudo ufw allow 5050/tcp)
+PORT=5050
+
+# Where the clients on A and B write their CSV logs before they are copied
+# to S (local disk, not a network home directory).
+REMOTE_RAW=/tmp/fds_raw
+
+# Where every client writes the files it receives (local disk!). The runner
+# deletes them after each run unless --keep-output is given.
+CLIENT_TMP=/tmp/fds_out
+
+# Extra ssh options, e.g. a key or a non-standard port.
+#SSH_OPTS="-i /home/student/.ssh/id_ed25519 -p 22"
+
+# manual mode only: how A and B reach S to copy their CSV files back
+# (printed in the scp/rsync commands at the end). Defaults: $USER@SERVER_IP
+# and the same repository path as on A/B.
+#SERVER_SSH=student@192.168.1.10
+#SERVER_REPO=/home/student/comp_net
