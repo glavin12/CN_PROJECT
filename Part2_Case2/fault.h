@@ -12,9 +12,10 @@
  * shutdown(SHUT_RDWR) + close(). The cut therefore lands at a random byte
  * inside the chunk, so client checkpoints are not 64 KB aligned.
  *
- * SEED: with the optional [seed] server argument the generator is seeded with
- * seed ^ conn_id (repeatable per connection); without it with
- * time ^ thread id ^ conn_id.
+ * SEED: with the optional [seed] server argument the generator state is a
+ * hash of (seed, conn_id), which is repeatable per connection (deviation 20:
+ * the design's seed ^ conn_id makes runs with nearby seeds replay the same
+ * sequences); without it, a hash of time, thread id and conn_id.
  *
  * p is therefore the probability that the connection is cut during any given
  * 64 KB chunk. p = 0 never cuts; p = 1 cuts every chunk.

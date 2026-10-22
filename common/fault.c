@@ -48,13 +48,17 @@
  *      (deviation 9).
  *
  * SEEDING (fault_init(), once per accepted connection)
- *   With the [seed] argument: srand48_r(seed ^ conn_id). The same seed
- *   reproduces the same fault positions on every connection, so an
- *   experiment run can be repeated exactly. XOR with conn_id still gives each
- *   connection its own sequence. srand48_r() uses only the low 32 bits of
- *   its argument, so connections are distinct as long as their conn_ids
- *   differ in those bits, which holds for any run of fewer than 2^32
- *   connections.
+ *   With the [seed] argument: the 48-bit generator state is a hash of
+ *   (seed, conn_id). The same seed reproduces the same fault positions on
+ *   every connection, so an experiment run can be repeated exactly, and each
+ *   connection still gets its own sequence. The design said
+ *   srand48_r(seed ^ conn_id). Plain XOR is a bad seed combiner here: the
+ *   repetitions use seeds 1001, 1002, ..., which differ only in their low
+ *   bits, so {1001 ^ c} and {1002 ^ c} over conn_ids 1..32 share 30 of 32
+ *   values. Two "independent" repetitions would replay the same fault
+ *   sequences in a different order (deviation 20). Hashing each input
+ *   separately makes every (seed, conn_id) pair start an unrelated
+ *   sequence.
  *   Without it: wall-clock time, thread id, conn_id and monotonic time are
  *   hashed together into all 48 bits of the generator state (see
  *   fault_init()).
@@ -90,9 +94,15 @@ void fault_init(fault_state_t *f, double p, int have_seed, long seed, uint64_t c
     memset(f, 0, sizeof(*f));           /* draws = faults = 0 */
     f->p = p;
     if (have_seed) {
-        /* Exactly as documented in fault.h and design section 4.2, so a run
-         * with a given seed is reproducible from the documentation alone. */
-        (void)srand48_r((long)((unsigned long)seed ^ conn_id), &f->rng);
+        /* Repeatable: depends only on (seed, conn_id). See SEEDING above
+         * for why this is a hash and not seed ^ conn_id. */
+        unsigned short xsubi[3];
+        uint64_t h = mix64(mix64((uint64_t)(unsigned long)seed) ^ conn_id);
+
+        xsubi[0] = (unsigned short)h;
+        xsubi[1] = (unsigned short)(h >> 16);
+        xsubi[2] = (unsigned short)(h >> 32);
+        (void)seed48_r(xsubi, &f->rng);
     } else {
         /*
          * time ^ thread id ^ conn_id (design section 4.2), and monotonic time

@@ -180,5 +180,24 @@ int main(void)
         CHECK(rate > 0.095 && rate < 0.105);
     }
 
+    /* ---- deviation 20: nearby seeds must not replay each other's sequences.
+     * With the design's seed ^ conn_id, seed 1001 on conn c equals seed 1002
+     * on conn c ^ 3, so 30 of the 32 per-connection generators of two
+     * repetitions were identical. With hashed seeding, no generator of
+     * repetition 2 may match any generator of repetition 1. ---- */
+    {
+        int same = 0;
+
+        for (uint64_t c1 = 1; c1 <= 32; c1++) {
+            for (uint64_t c2 = 1; c2 <= 32; c2++) {
+                fault_init(&f, 0.5, 1, 1001, c1);
+                fault_init(&g, 0.5, 1, 1002, c2);
+                if (differences(&f, &g, 64, FDS_CHUNK_SIZE) == 0)
+                    same++;
+            }
+        }
+        CHECK_EQ(same, 0);
+    }
+
     UNIT_DONE();
 }
