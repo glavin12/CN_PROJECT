@@ -1,0 +1,17 @@
+run_id,case,ts_ns,event,conn_id,session_id,topic,file_index,offset,chunk_index,conn_data_bytes,detail
+enh_K2_threads_p0.3_r3,enhanced,9467451457162,SESSION_NEW,1,51b6dd8b096e76063a999975ad8484a1,"gatto",-1,0,0,0,"k=2"
+enh_K2_threads_p0.3_r3,enhanced,9467451693245,SESSION_NEW,2,06a2cff5efeaddc8f6db3513fae5f78e,"gatto",-1,0,0,0,"k=2"
+enh_K2_threads_p0.3_r3,enhanced,9467452194066,SESSION_NEW,4,c7920ba03318e1825d39940bba585490,"gatto",-1,0,0,0,"k=2"
+enh_K2_threads_p0.3_r3,enhanced,9467452205668,SESSION_NEW,3,46a227be944f55c57159daea1b42d75d,"gatto",-1,0,0,0,"k=2"
+enh_K2_threads_p0.3_r3,enhanced,9467455106544,FAULT,6,51b6dd8b096e76063a999975ad8484a1,"gatto",1,0,0,1399,"prefix=1399/8885"
+enh_K2_threads_p0.3_r3,enhanced,9467455627986,FAULT,7,c7920ba03318e1825d39940bba585490,"gatto",0,0,0,1861,"prefix=1861/10715"
+enh_K2_threads_p0.3_r3,enhanced,9467456982296,FAULT,12,06a2cff5efeaddc8f6db3513fae5f78e,"gatto",1,0,0,2289,"prefix=2289/8885"
+enh_K2_threads_p0.3_r3,enhanced,9467506131015,FAULT,13,51b6dd8b096e76063a999975ad8484a1,"gatto",105,0,0,4809,"prefix=4809/6205"
+enh_K2_threads_p0.3_r3,enhanced,9467506445352,FAULT,14,c7920ba03318e1825d39940bba585490,"gatto",101,0,0,8342,"prefix=8342/9575"
+enh_K2_threads_p0.3_r3,enhanced,9467557041922,FAULT,16,51b6dd8b096e76063a999975ad8484a1,"gatto",193,0,0,6001,"prefix=6001/7791"
+enh_K2_threads_p0.3_r3,enhanced,9471898536770,FETCH_RESUME,15,06a2cff5efeaddc8f6db3513fae5f78e,"gatto",1,2289,0,74313183,-
+enh_K2_threads_p0.3_r3,enhanced,9471972985461,FETCH_RESUME,18,51b6dd8b096e76063a999975ad8484a1,"gatto",1,1399,0,73568833,-
+enh_K2_threads_p0.3_r3,enhanced,9471973961463,FETCH_RESUME,18,51b6dd8b096e76063a999975ad8484a1,"gatto",105,4809,0,73576319,-
+enh_K2_threads_p0.3_r3,enhanced,9471974452075,FETCH_RESUME,18,51b6dd8b096e76063a999975ad8484a1,"gatto",193,6001,0,73577715,-
+enh_K2_threads_p0.3_r3,enhanced,9472018123359,FETCH_RESUME,8,c7920ba03318e1825d39940bba585490,"gatto",0,1861,0,78460240,-
+enh_K2_threads_p0.3_r3,enhanced,9472018755519,FETCH_RESUME,8,c7920ba03318e1825d39940bba585490,"gatto",101,8342,0,78469094,-

@@ -1,0 +1,17 @@
+run_id,case,ts_ns,event,conn_id,session_id,topic,file_index,offset,chunk_index,conn_data_bytes,detail
+enh_K8_threads_p0.2_w1_warmup,enhanced,10031752888702,SESSION_NEW,1,dc395d49af12a1ef2c5db4ac86db37fc,"gatto",-1,0,0,0,"k=8"
+enh_K8_threads_p0.2_w1_warmup,enhanced,10031752975621,SESSION_NEW,2,a611d4edda061ca74f5718bf3d8143df,"gatto",-1,0,0,0,"k=8"
+enh_K8_threads_p0.2_w1_warmup,enhanced,10031752994512,SESSION_NEW,4,9f62cf77d0f5e7b1085c17c259adc405,"gatto",-1,0,0,0,"k=8"
+enh_K8_threads_p0.2_w1_warmup,enhanced,10031753087971,SESSION_NEW,3,f018b3a64ba8cc2a33349c60cde7492f,"gatto",-1,0,0,0,"k=8"
+enh_K8_threads_p0.2_w1_warmup,enhanced,10031756892431,FAULT,12,dc395d49af12a1ef2c5db4ac86db37fc,"gatto",3,0,0,222,"prefix=222/10084"
+enh_K8_threads_p0.2_w1_warmup,enhanced,10031758234697,FAULT,23,9f62cf77d0f5e7b1085c17c259adc405,"gatto",0,0,0,2586,"prefix=2586/10715"
+enh_K8_threads_p0.2_w1_warmup,enhanced,10031758277765,FAULT,27,a611d4edda061ca74f5718bf3d8143df,"gatto",3,0,0,8970,"prefix=8970/10084"
+enh_K8_threads_p0.2_w1_warmup,enhanced,10031758295291,FAULT,29,a611d4edda061ca74f5718bf3d8143df,"gatto",4,0,0,136,"prefix=136/8909"
+enh_K8_threads_p0.2_w1_warmup,enhanced,10031808865801,FAULT,37,dc395d49af12a1ef2c5db4ac86db37fc,"gatto",123,0,0,8141,"prefix=8141/12123"
+enh_K8_threads_p0.2_w1_warmup,enhanced,10031810562776,FAULT,39,9f62cf77d0f5e7b1085c17c259adc405,"gatto",138,0,0,1907,"prefix=1907/11976"
+enh_K8_threads_p0.2_w1_warmup,enhanced,10036308695497,FETCH_RESUME,31,a611d4edda061ca74f5718bf3d8143df,"gatto",4,136,0,18093593,-
+enh_K8_threads_p0.2_w1_warmup,enhanced,10036310448985,FETCH_RESUME,25,9f62cf77d0f5e7b1085c17c259adc405,"gatto",0,2586,0,18130143,-
+enh_K8_threads_p0.2_w1_warmup,enhanced,10036311567738,FETCH_RESUME,31,a611d4edda061ca74f5718bf3d8143df,"gatto",3,8970,0,18102366,-
+enh_K8_threads_p0.2_w1_warmup,enhanced,10036312915135,FETCH_RESUME,25,9f62cf77d0f5e7b1085c17c259adc405,"gatto",138,1907,0,18138272,-
+enh_K8_threads_p0.2_w1_warmup,enhanced,10036745601671,FETCH_RESUME,5,dc395d49af12a1ef2c5db4ac86db37fc,"gatto",3,222,0,21790389,-
+enh_K8_threads_p0.2_w1_warmup,enhanced,10036747712400,FETCH_RESUME,5,dc395d49af12a1ef2c5db4ac86db37fc,"gatto",123,8141,0,21800251,-

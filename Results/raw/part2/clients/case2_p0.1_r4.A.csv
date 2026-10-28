@@ -1,0 +1,3 @@
+run_id,case,host,client_id,pid,topic,k,io,start_ns,end_ns,start_wall_ns,end_wall_ns,useful_bytes,data_bytes_rx,wire_bytes_rx,files,attempts,reconnects,rejects,status
+case2_p0.1_r4,case2,fds-A,A2,77613,"gatto",1,-,8713262066544,8718323227639,1792767496344074002,1792767501405235078,151144282,151144282,151281580,1668,1,0,0,OK
+case2_p0.1_r4,case2,fds-A,A1,77612,"gatto",1,-,8713261891327,8718323440591,1792767496343898751,1792767501405448030,151144282,151144282,151281580,1668,1,0,0,OK

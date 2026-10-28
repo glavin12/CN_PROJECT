@@ -1,0 +1,5 @@
+run_id,case,mode,p,seed,conn_id,kind,session_id,topic,k,peer,start_ns,end_ns,start_wall_ns,data_bytes,wire_bytes,chunks,files_completed,faulted,status
+part1_single_N4_r2,part1,single,-1,-,1,get,-,"elefante",0,10.10.0.3:49088,7566297330144,7566787528944,1792766349379337566,58509473,58657524,1922,1446,0,OK
+part1_single_N4_r2,part1,single,-1,-,2,get,-,"elefante",0,10.10.0.3:49090,7566787573598,7567278259730,1792766349869581020,58509473,58657524,1922,1446,0,OK
+part1_single_N4_r2,part1,single,-1,-,3,get,-,"elefante",0,10.10.0.2:55248,7567278287132,7567769103259,1792766350360294550,58509473,58657524,1922,1446,0,OK
+part1_single_N4_r2,part1,single,-1,-,4,get,-,"elefante",0,10.10.0.2:55258,7567769132613,7568260973480,1792766350851140050,58509473,58657524,1922,1446,0,OK

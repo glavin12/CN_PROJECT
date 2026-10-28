@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "oversized-h1",
+        "value": "*",
+        "files": [
+          "docs/report/FinalReport_Group_006_043.html"
+        ],
+        "createdAt": "2026-10-23T14:45:08.272Z",
+        "reason": "Claude: print-only A4 report; the h1 is the 20pt title on a dedicated cover page, not a web hero"
+      }
+    ]
+  }
+}

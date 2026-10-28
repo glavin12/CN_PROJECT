@@ -1,0 +1,5 @@
+run_id,case,ts_ns,event,conn_id,session_id,topic,file_index,offset,chunk_index,conn_data_bytes,detail
+buf_case2_bdefault_w1_warmup,case2,10573652641836,SESSION_NEW,1,a1590c94dee1c9f75f69e963d0ba9121,"gatto",-1,0,0,0,-
+buf_case2_bdefault_w1_warmup,case2,10573652675236,SESSION_NEW,2,f6b6072f5cd252e6688101c7047e029f,"gatto",-1,0,0,0,-
+buf_case2_bdefault_w1_warmup,case2,10573652879676,SESSION_NEW,3,7fe28c6584facbb2253195ad021af9ee,"gatto",-1,0,0,0,-
+buf_case2_bdefault_w1_warmup,case2,10573652994210,SESSION_NEW,4,0cf9ac276fde41bfbc1fb7c74c716a1a,"gatto",-1,0,0,0,-

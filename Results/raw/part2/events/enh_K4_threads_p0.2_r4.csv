@@ -1,0 +1,17 @@
+run_id,case,ts_ns,event,conn_id,session_id,topic,file_index,offset,chunk_index,conn_data_bytes,detail
+enh_K4_threads_p0.2_r4,enhanced,9745946572456,SESSION_NEW,1,42a8bc2b2cd6b671a4afbbdf87f5e733,"gatto",-1,0,0,0,"k=4"
+enh_K4_threads_p0.2_r4,enhanced,9745946610794,SESSION_NEW,2,f0efc919f08c0809a88fb448c577d0f9,"gatto",-1,0,0,0,"k=4"
+enh_K4_threads_p0.2_r4,enhanced,9745946648107,SESSION_NEW,3,89e29e3b67507212cd27147496dfbea8,"gatto",-1,0,0,0,"k=4"
+enh_K4_threads_p0.2_r4,enhanced,9745946667571,SESSION_NEW,4,f1a2b947fcd86659f281cb8bdcc16ba5,"gatto",-1,0,0,0,"k=4"
+enh_K4_threads_p0.2_r4,enhanced,9745950313742,FAULT,5,42a8bc2b2cd6b671a4afbbdf87f5e733,"gatto",0,0,0,4202,"prefix=4202/10715"
+enh_K4_threads_p0.2_r4,enhanced,9745950350979,FAULT,7,42a8bc2b2cd6b671a4afbbdf87f5e733,"gatto",2,0,0,2906,"prefix=2906/3671"
+enh_K4_threads_p0.2_r4,enhanced,9745950378761,FAULT,11,f0efc919f08c0809a88fb448c577d0f9,"gatto",2,0,0,2280,"prefix=2280/3671"
+enh_K4_threads_p0.2_r4,enhanced,9745950379410,FAULT,6,42a8bc2b2cd6b671a4afbbdf87f5e733,"gatto",1,0,0,5803,"prefix=5803/8885"
+enh_K4_threads_p0.2_r4,enhanced,9745951817702,FAULT,19,f1a2b947fcd86659f281cb8bdcc16ba5,"gatto",2,0,0,2144,"prefix=2144/3671"
+enh_K4_threads_p0.2_r4,enhanced,9746001378698,FAULT,23,f0efc919f08c0809a88fb448c577d0f9,"gatto",153,0,0,13054,"prefix=13054/16902"
+enh_K4_threads_p0.2_r4,enhanced,9750866549241,FETCH_RESUME,18,f1a2b947fcd86659f281cb8bdcc16ba5,"gatto",2,2144,0,37030011,-
+enh_K4_threads_p0.2_r4,enhanced,9750901257900,FETCH_RESUME,21,42a8bc2b2cd6b671a4afbbdf87f5e733,"gatto",0,4202,0,36687733,-
+enh_K4_threads_p0.2_r4,enhanced,9750902361691,FETCH_RESUME,21,42a8bc2b2cd6b671a4afbbdf87f5e733,"gatto",1,5803,0,36694246,-
+enh_K4_threads_p0.2_r4,enhanced,9750903515195,FETCH_RESUME,21,42a8bc2b2cd6b671a4afbbdf87f5e733,"gatto",2,2906,0,36697328,-
+enh_K4_threads_p0.2_r4,enhanced,9750934653433,FETCH_RESUME,9,f0efc919f08c0809a88fb448c577d0f9,"gatto",2,2280,0,37576124,-
+enh_K4_threads_p0.2_r4,enhanced,9750936154544,FETCH_RESUME,9,f0efc919f08c0809a88fb448c577d0f9,"gatto",153,13054,0,37577515,-

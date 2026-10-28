@@ -587,7 +587,7 @@ def main():
             cols += [k + "_mean", k + "_sd"]
         write_csv(os.path.join(args.out, "Part1_summary.csv"), cols, p1_rows)
         md += ["## Part I: single- vs multi-threaded server", "",
-               "Topic `%s`; N clients in total, split evenly over PC A and PC B." % p1_rows[0]["topic"], ""]
+               "Topic `%s`; N clients in total, split evenly over client hosts A and B." % p1_rows[0]["topic"], ""]
         md.append(md_table(
             ["Server", "N", "OK/runs", "Aggregate throughput (MB/s)", "(Mbit/s)", "Mean completion (s)",
              "Max completion (s)", "Per-client goodput (MB/s)"],

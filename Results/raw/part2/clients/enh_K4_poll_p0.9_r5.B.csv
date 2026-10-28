@@ -1,0 +1,3 @@
+run_id,case,host,client_id,pid,topic,k,io,start_ns,end_ns,start_wall_ns,end_wall_ns,useful_bytes,data_bytes_rx,wire_bytes_rx,files,attempts,reconnects,rejects,status
+enh_K4_poll_p0.9_r5,enhanced,fds-B,B2,136721,"gatto",4,poll,10565790185834,10570531301502,1792769348872193257,1792769353613308919,151144282,151144282,151339808,1668,24,19,0,OK
+enh_K4_poll_p0.9_r5,enhanced,fds-B,B1,136722,"gatto",4,poll,10565790348096,10570861286874,1792769348872355578,1792769353943294292,151144282,151144282,151342834,1668,67,62,0,OK
