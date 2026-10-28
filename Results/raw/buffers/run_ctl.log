@@ -1,0 +1,82 @@
+[20:59:15] sweep buffers started: 40 runs, mode emu
+[20:59:15] (1/40) buf_case2_bdefault_w1_warmup: Part2_Case2 server [0 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:59:22] (1/40) buf_case2_bdefault_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.511 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h04m52s)
+[20:59:23] (2/40) buf_case2_bdefault_r1: Part2_Case2 server [0 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:59:29] (2/40) buf_case2_bdefault_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h04m45s)
+[20:59:30] (3/40) buf_case2_bdefault_r2: Part2_Case2 server [0 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:59:37] (3/40) buf_case2_bdefault_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h04m37s)
+[20:59:38] (4/40) buf_case2_bdefault_r3: Part2_Case2 server [0 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:59:44] (4/40) buf_case2_bdefault_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h04m30s)
+[20:59:45] (5/40) buf_case2_b65536_w1_warmup: Part2_Case2 server [0 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:59:52] (5/40) buf_case2_b65536_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h04m22s)
+[20:59:53] (6/40) buf_case2_b65536_r1: Part2_Case2 server [0 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:59:59] (6/40) buf_case2_b65536_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h04m15s)
+[21:00:00] (7/40) buf_case2_b65536_r2: Part2_Case2 server [0 1002], 4 client(s) (A=2 B=2), time-out 300s
+[21:00:07] (7/40) buf_case2_b65536_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h04m07s)
+[21:00:08] (8/40) buf_case2_b65536_r3: Part2_Case2 server [0 1003], 4 client(s) (A=2 B=2), time-out 300s
+[21:00:14] (8/40) buf_case2_b65536_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.506 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h04m00s)
+[21:00:15] (9/40) buf_case2_b262144_w1_warmup: Part2_Case2 server [0 1000], 4 client(s) (A=2 B=2), time-out 300s
+[21:00:22] (9/40) buf_case2_b262144_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.504 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h03m52s)
+[21:00:23] (10/40) buf_case2_b262144_r1: Part2_Case2 server [0 1001], 4 client(s) (A=2 B=2), time-out 300s
+[21:00:29] (10/40) buf_case2_b262144_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.506 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h03m45s)
+[21:00:30] (11/40) buf_case2_b262144_r2: Part2_Case2 server [0 1002], 4 client(s) (A=2 B=2), time-out 300s
+[21:00:37] (11/40) buf_case2_b262144_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.505 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h03m37s)
+[21:00:38] (12/40) buf_case2_b262144_r3: Part2_Case2 server [0 1003], 4 client(s) (A=2 B=2), time-out 300s
+[21:00:44] (12/40) buf_case2_b262144_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.507 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h03m30s)
+[21:00:45] (13/40) buf_case2_b1048576_w1_warmup: Part2_Case2 server [0 1000], 4 client(s) (A=2 B=2), time-out 300s
+[21:00:52] (13/40) buf_case2_b1048576_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.511 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h03m22s)
+[21:00:53] (14/40) buf_case2_b1048576_r1: Part2_Case2 server [0 1001], 4 client(s) (A=2 B=2), time-out 300s
+[21:00:59] (14/40) buf_case2_b1048576_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h03m15s)
+[21:01:00] (15/40) buf_case2_b1048576_r2: Part2_Case2 server [0 1002], 4 client(s) (A=2 B=2), time-out 300s
+[21:01:07] (15/40) buf_case2_b1048576_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h03m07s)
+[21:01:08] (16/40) buf_case2_b1048576_r3: Part2_Case2 server [0 1003], 4 client(s) (A=2 B=2), time-out 300s
+[21:01:14] (16/40) buf_case2_b1048576_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h03m00s)
+[21:01:15] (17/40) buf_case2_b4194304_w1_warmup: Part2_Case2 server [0 1000], 4 client(s) (A=2 B=2), time-out 300s
+[21:01:22] (17/40) buf_case2_b4194304_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.507 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h02m52s)
+[21:01:23] (18/40) buf_case2_b4194304_r1: Part2_Case2 server [0 1001], 4 client(s) (A=2 B=2), time-out 300s
+[21:01:29] (18/40) buf_case2_b4194304_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h02m45s)
+[21:01:30] (19/40) buf_case2_b4194304_r2: Part2_Case2 server [0 1002], 4 client(s) (A=2 B=2), time-out 300s
+[21:01:37] (19/40) buf_case2_b4194304_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.507 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h02m37s)
+[21:01:38] (20/40) buf_case2_b4194304_r3: Part2_Case2 server [0 1003], 4 client(s) (A=2 B=2), time-out 300s
+[21:01:44] (20/40) buf_case2_b4194304_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h02m30s)
+[21:01:45] (21/40) buf_enh_K4_threads_bdefault_w1_warmup: Part2_Case2_Enhanced server [0 1000], 4 client(s) (A=2 B=2), time-out 300s
+[21:01:52] (21/40) buf_enh_K4_threads_bdefault_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.505 s, server rc=0 rows=20, check [A:OK B:OK] (ETA 0h02m22s)
+[21:01:53] (22/40) buf_enh_K4_threads_bdefault_r1: Part2_Case2_Enhanced server [0 1001], 4 client(s) (A=2 B=2), time-out 300s
+[21:02:00] (22/40) buf_enh_K4_threads_bdefault_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.507 s, server rc=0 rows=20, check [A:OK B:OK] (ETA 0h02m15s)
+[21:02:01] (23/40) buf_enh_K4_threads_bdefault_r2: Part2_Case2_Enhanced server [0 1002], 4 client(s) (A=2 B=2), time-out 300s
+[21:02:07] (23/40) buf_enh_K4_threads_bdefault_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.507 s, server rc=0 rows=20, check [A:OK B:OK] (ETA 0h02m07s)
+[21:02:08] (24/40) buf_enh_K4_threads_bdefault_r3: Part2_Case2_Enhanced server [0 1003], 4 client(s) (A=2 B=2), time-out 300s
+[21:02:15] (24/40) buf_enh_K4_threads_bdefault_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.507 s, server rc=0 rows=20, check [A:OK B:OK] (ETA 0h02m00s)
+[21:02:16] (25/40) buf_enh_K4_threads_b65536_w1_warmup: Part2_Case2_Enhanced server [0 1000], 4 client(s) (A=2 B=2), time-out 300s
+[21:02:22] (25/40) buf_enh_K4_threads_b65536_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.506 s, server rc=0 rows=20, check [A:OK B:OK] (ETA 0h01m52s)
+[21:02:23] (26/40) buf_enh_K4_threads_b65536_r1: Part2_Case2_Enhanced server [0 1001], 4 client(s) (A=2 B=2), time-out 300s
+[21:02:30] (26/40) buf_enh_K4_threads_b65536_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=20, check [A:OK B:OK] (ETA 0h01m45s)
+[21:02:31] (27/40) buf_enh_K4_threads_b65536_r2: Part2_Case2_Enhanced server [0 1002], 4 client(s) (A=2 B=2), time-out 300s
+[21:02:37] (27/40) buf_enh_K4_threads_b65536_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.507 s, server rc=0 rows=20, check [A:OK B:OK] (ETA 0h01m37s)
+[21:02:38] (28/40) buf_enh_K4_threads_b65536_r3: Part2_Case2_Enhanced server [0 1003], 4 client(s) (A=2 B=2), time-out 300s
+[21:02:45] (28/40) buf_enh_K4_threads_b65536_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.506 s, server rc=0 rows=20, check [A:OK B:OK] (ETA 0h01m30s)
+[21:02:46] (29/40) buf_enh_K4_threads_b262144_w1_warmup: Part2_Case2_Enhanced server [0 1000], 4 client(s) (A=2 B=2), time-out 300s
+[21:02:52] (29/40) buf_enh_K4_threads_b262144_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.506 s, server rc=0 rows=20, check [A:OK B:OK] (ETA 0h01m22s)
+[21:02:53] (30/40) buf_enh_K4_threads_b262144_r1: Part2_Case2_Enhanced server [0 1001], 4 client(s) (A=2 B=2), time-out 300s
+[21:03:00] (30/40) buf_enh_K4_threads_b262144_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.507 s, server rc=0 rows=20, check [A:OK B:OK] (ETA 0h01m15s)
+[21:03:01] (31/40) buf_enh_K4_threads_b262144_r2: Part2_Case2_Enhanced server [0 1002], 4 client(s) (A=2 B=2), time-out 300s
+[21:03:07] (31/40) buf_enh_K4_threads_b262144_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.506 s, server rc=0 rows=20, check [A:OK B:OK] (ETA 0h01m07s)
+[21:03:08] (32/40) buf_enh_K4_threads_b262144_r3: Part2_Case2_Enhanced server [0 1003], 4 client(s) (A=2 B=2), time-out 300s
+[21:03:15] (32/40) buf_enh_K4_threads_b262144_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.507 s, server rc=0 rows=20, check [A:OK B:OK] (ETA 0h01m00s)
+[21:03:16] (33/40) buf_enh_K4_threads_b1048576_w1_warmup: Part2_Case2_Enhanced server [0 1000], 4 client(s) (A=2 B=2), time-out 300s
+[21:03:22] (33/40) buf_enh_K4_threads_b1048576_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.506 s, server rc=0 rows=20, check [A:OK B:OK] (ETA 0h00m52s)
+[21:03:23] (34/40) buf_enh_K4_threads_b1048576_r1: Part2_Case2_Enhanced server [0 1001], 4 client(s) (A=2 B=2), time-out 300s
+[21:03:30] (34/40) buf_enh_K4_threads_b1048576_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.507 s, server rc=0 rows=20, check [A:OK B:OK] (ETA 0h00m45s)
+[21:03:31] (35/40) buf_enh_K4_threads_b1048576_r2: Part2_Case2_Enhanced server [0 1002], 4 client(s) (A=2 B=2), time-out 300s
+[21:03:37] (35/40) buf_enh_K4_threads_b1048576_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.507 s, server rc=0 rows=20, check [A:OK B:OK] (ETA 0h00m37s)
+[21:03:38] (36/40) buf_enh_K4_threads_b1048576_r3: Part2_Case2_Enhanced server [0 1003], 4 client(s) (A=2 B=2), time-out 300s
+[21:03:45] (36/40) buf_enh_K4_threads_b1048576_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.507 s, server rc=0 rows=20, check [A:OK B:OK] (ETA 0h00m30s)
+[21:03:46] (37/40) buf_enh_K4_threads_b4194304_w1_warmup: Part2_Case2_Enhanced server [0 1000], 4 client(s) (A=2 B=2), time-out 300s
+[21:03:52] (37/40) buf_enh_K4_threads_b4194304_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=20, check [A:OK B:OK] (ETA 0h00m22s)
+[21:03:53] (38/40) buf_enh_K4_threads_b4194304_r1: Part2_Case2_Enhanced server [0 1001], 4 client(s) (A=2 B=2), time-out 300s
+[21:04:00] (38/40) buf_enh_K4_threads_b4194304_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.506 s, server rc=0 rows=20, check [A:OK B:OK] (ETA 0h00m15s)
+[21:04:01] (39/40) buf_enh_K4_threads_b4194304_r2: Part2_Case2_Enhanced server [0 1002], 4 client(s) (A=2 B=2), time-out 300s
+[21:04:07] (39/40) buf_enh_K4_threads_b4194304_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=20, check [A:OK B:OK] (ETA 0h00m07s)
+[21:04:08] (40/40) buf_enh_K4_threads_b4194304_r3: Part2_Case2_Enhanced server [0 1003], 4 client(s) (A=2 B=2), time-out 300s
+[21:04:15] (40/40) buf_enh_K4_threads_b4194304_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.507 s, server rc=0 rows=20, check [A:OK B:OK] (ETA 0h00m00s)
+[21:04:16] sweep buffers finished. Raw data in /home/bhagy/comp_net/Results/raw/buffers

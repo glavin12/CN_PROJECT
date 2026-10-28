@@ -1,0 +1,3 @@
+run_id,case,ts_ns,event,conn_id,session_id,topic,file_index,offset,chunk_index,conn_data_bytes,detail
+case1_p0.3_w1_warmup,case1,8252950803598,FAULT,1,-,"gatto",1655,917504,3019,115958388,"prefix=59883/65536"
+case1_p0.3_w1_warmup,case1,8254185459798,FAULT,5,-,"gatto",1323,0,1648,37170725,"prefix=59596/65536"

@@ -144,7 +144,7 @@ def n_axis(ax, ns):
     ax.xaxis.set_major_locator(FixedLocator(sorted(set(ns))))
     ax.xaxis.set_minor_locator(NullLocator())
     ax.xaxis.set_major_formatter(FuncFormatter(lambda x, _pos: "%d" % x))
-    ax.set_xlabel("number of clients N (split over PC A and PC B)")
+    ax.set_xlabel("number of clients N (split over client hosts A and B)")
 
 
 class DnfMarks:

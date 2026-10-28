@@ -1,0 +1,602 @@
+[20:17:28] sweep part2 started: 300 runs, mode emu
+[20:17:28] (1/300) p1cmp_multi_N4_w1_warmup: Part1 server [multi], 4 client(s) (A=2 B=2), time-out 120s
+[20:17:35] (1/300) p1cmp_multi_N4_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h37m25s)
+[20:17:36] (2/300) p1cmp_multi_N4_r1: Part1 server [multi], 4 client(s) (A=2 B=2), time-out 120s
+[20:17:42] (2/300) p1cmp_multi_N4_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h37m17s)
+[20:17:43] (3/300) p1cmp_multi_N4_r2: Part1 server [multi], 4 client(s) (A=2 B=2), time-out 120s
+[20:17:50] (3/300) p1cmp_multi_N4_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.507 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h37m09s)
+[20:17:51] (4/300) p1cmp_multi_N4_r3: Part1 server [multi], 4 client(s) (A=2 B=2), time-out 120s
+[20:17:57] (4/300) p1cmp_multi_N4_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h37m02s)
+[20:17:58] (5/300) p1cmp_multi_N4_r4: Part1 server [multi], 4 client(s) (A=2 B=2), time-out 120s
+[20:18:05] (5/300) p1cmp_multi_N4_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h36m54s)
+[20:18:06] (6/300) p1cmp_multi_N4_r5: Part1 server [multi], 4 client(s) (A=2 B=2), time-out 120s
+[20:18:12] (6/300) p1cmp_multi_N4_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h36m47s)
+[20:18:13] (7/300) case1_p0_w1_warmup: Part2_Case1 server [0 1000], 4 client(s) (A=2 B=2), time-out 600s
+[20:18:20] (7/300) case1_p0_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.507 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h36m39s)
+[20:18:21] (8/300) case1_p0_r1: Part2_Case1 server [0 1001], 4 client(s) (A=2 B=2), time-out 600s
+[20:18:27] (8/300) case1_p0_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h36m32s)
+[20:18:28] (9/300) case1_p0_r2: Part2_Case1 server [0 1002], 4 client(s) (A=2 B=2), time-out 600s
+[20:18:35] (9/300) case1_p0_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h36m24s)
+[20:18:36] (10/300) case1_p0_r3: Part2_Case1 server [0 1003], 4 client(s) (A=2 B=2), time-out 600s
+[20:18:42] (10/300) case1_p0_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h36m17s)
+[20:18:43] (11/300) case1_p0_r4: Part2_Case1 server [0 1004], 4 client(s) (A=2 B=2), time-out 600s
+[20:18:50] (11/300) case1_p0_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.506 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h36m09s)
+[20:18:51] (12/300) case1_p0_r5: Part2_Case1 server [0 1005], 4 client(s) (A=2 B=2), time-out 600s
+[20:18:57] (12/300) case1_p0_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h36m02s)
+[20:18:58] (13/300) case1_p0.1_w1_warmup: Part2_Case1 server [0.1 1000], 4 client(s) (A=2 B=2), time-out 600s
+[20:19:05] (13/300) case1_p0.1_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h35m54s)
+[20:19:06] (14/300) case1_p0.1_r1: Part2_Case1 server [0.1 1001], 4 client(s) (A=2 B=2), time-out 600s
+[20:19:12] (14/300) case1_p0.1_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.507 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h35m47s)
+[20:19:13] (15/300) case1_p0.1_r2: Part2_Case1 server [0.1 1002], 4 client(s) (A=2 B=2), time-out 600s
+[20:19:20] (15/300) case1_p0.1_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h35m39s)
+[20:19:21] (16/300) case1_p0.1_r3: Part2_Case1 server [0.1 1003], 4 client(s) (A=2 B=2), time-out 600s
+[20:19:27] (16/300) case1_p0.1_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.506 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h35m32s)
+[20:19:28] (17/300) case1_p0.1_r4: Part2_Case1 server [0.1 1004], 4 client(s) (A=2 B=2), time-out 600s
+[20:19:35] (17/300) case1_p0.1_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h35m24s)
+[20:19:36] (18/300) case1_p0.1_r5: Part2_Case1 server [0.1 1005], 4 client(s) (A=2 B=2), time-out 600s
+[20:19:42] (18/300) case1_p0.1_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h35m17s)
+[20:19:43] (19/300) case1_p0.2_w1_warmup: Part2_Case1 server [0.2 1000], 4 client(s) (A=2 B=2), time-out 600s
+[20:19:50] (19/300) case1_p0.2_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.511 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h35m09s)
+[20:19:51] (20/300) case1_p0.2_r1: Part2_Case1 server [0.2 1001], 4 client(s) (A=2 B=2), time-out 600s
+[20:19:57] (20/300) case1_p0.2_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h35m02s)
+[20:19:58] (21/300) case1_p0.2_r2: Part2_Case1 server [0.2 1002], 4 client(s) (A=2 B=2), time-out 600s
+[20:20:06] (21/300) case1_p0.2_r2: OK ok=4 dnf=0 timeout=0 fail=0, 7.923 s, server rc=0 rows=6, check [A:OK B:OK] (ETA 0h35m13s)
+[20:20:07] (22/300) case1_p0.2_r3: Part2_Case1 server [0.2 1003], 4 client(s) (A=2 B=2), time-out 600s
+[20:20:14] (22/300) case1_p0.2_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h35m05s)
+[20:20:15] (23/300) case1_p0.2_r4: Part2_Case1 server [0.2 1004], 4 client(s) (A=2 B=2), time-out 600s
+[20:20:21] (23/300) case1_p0.2_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.511 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h34m56s)
+[20:20:22] (24/300) case1_p0.2_r5: Part2_Case1 server [0.2 1005], 4 client(s) (A=2 B=2), time-out 600s
+[20:20:30] (24/300) case1_p0.2_r5: OK ok=4 dnf=0 timeout=0 fail=0, 7.115 s, server rc=0 rows=6, check [A:OK B:OK] (ETA 0h34m55s)
+[20:20:31] (25/300) case1_p0.3_w1_warmup: Part2_Case1 server [0.3 1000], 4 client(s) (A=2 B=2), time-out 600s
+[20:20:38] (25/300) case1_p0.3_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 7.722 s, server rc=0 rows=6, check [A:OK B:OK] (ETA 0h35m00s)
+[20:20:39] (26/300) case1_p0.3_r1: Part2_Case1 server [0.3 1001], 4 client(s) (A=2 B=2), time-out 600s
+[20:20:48] (26/300) case1_p0.3_r1: OK ok=4 dnf=0 timeout=0 fail=0, 8.530 s, server rc=0 rows=8, check [A:OK B:OK] (ETA 0h35m12s)
+[20:20:49] (27/300) case1_p0.3_r2: Part2_Case1 server [0.3 1002], 4 client(s) (A=2 B=2), time-out 600s
+[20:20:57] (27/300) case1_p0.3_r2: OK ok=4 dnf=0 timeout=0 fail=0, 7.925 s, server rc=0 rows=6, check [A:OK B:OK] (ETA 0h35m17s)
+[20:20:58] (28/300) case1_p0.3_r3: Part2_Case1 server [0.3 1003], 4 client(s) (A=2 B=2), time-out 600s
+[20:21:05] (28/300) case1_p0.3_r3: OK ok=4 dnf=0 timeout=0 fail=0, 7.316 s, server rc=0 rows=5, check [A:OK B:OK] (ETA 0h35m14s)
+[20:21:06] (29/300) case1_p0.3_r4: Part2_Case1 server [0.3 1004], 4 client(s) (A=2 B=2), time-out 600s
+[20:21:13] (29/300) case1_p0.3_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.507 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h35m04s)
+[20:21:14] (30/300) case1_p0.3_r5: Part2_Case1 server [0.3 1005], 4 client(s) (A=2 B=2), time-out 600s
+[20:21:21] (30/300) case1_p0.3_r5: OK ok=4 dnf=0 timeout=0 fail=0, 7.115 s, server rc=0 rows=6, check [A:OK B:OK] (ETA 0h35m00s)
+[20:21:22] (31/300) case1_p0.5_w1_warmup: Part2_Case1 server [0.5 1000], 4 client(s) (A=2 B=2), time-out 600s
+[20:21:30] (31/300) case1_p0.5_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 8.126 s, server rc=0 rows=8, check [A:OK B:OK] (ETA 0h35m03s)
+[20:21:31] (32/300) case1_p0.5_r1: Part2_Case1 server [0.5 1001], 4 client(s) (A=2 B=2), time-out 600s
+[20:21:41] (32/300) case1_p0.5_r1: OK ok=4 dnf=0 timeout=0 fail=0, 9.949 s, server rc=0 rows=10, check [A:OK B:OK] (ETA 0h35m22s)
+[20:21:42] (33/300) case1_p0.5_r2: Part2_Case1 server [0.5 1002], 4 client(s) (A=2 B=2), time-out 600s
+[20:21:53] (33/300) case1_p0.5_r2: OK ok=4 dnf=0 timeout=0 fail=0, 10.755 s, server rc=0 rows=9, check [A:OK B:OK] (ETA 0h35m45s)
+[20:21:54] (34/300) case1_p0.5_r3: Part2_Case1 server [0.5 1003], 4 client(s) (A=2 B=2), time-out 600s
+[20:22:03] (34/300) case1_p0.5_r3: OK ok=4 dnf=0 timeout=0 fail=0, 8.935 s, server rc=0 rows=8, check [A:OK B:OK] (ETA 0h35m52s)
+[20:22:04] (35/300) case1_p0.5_r4: Part2_Case1 server [0.5 1004], 4 client(s) (A=2 B=2), time-out 600s
+[20:22:10] (35/300) case1_p0.5_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.507 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h35m39s)
+[20:22:11] (36/300) case1_p0.5_r5: Part2_Case1 server [0.5 1005], 4 client(s) (A=2 B=2), time-out 600s
+[20:22:19] (36/300) case1_p0.5_r5: OK ok=4 dnf=0 timeout=0 fail=0, 7.722 s, server rc=0 rows=7, check [A:OK B:OK] (ETA 0h35m36s)
+[20:22:20] (37/300) case1_p0.7_w1_warmup: Part2_Case1 server [0.7 1000], 4 client(s) (A=2 B=2), time-out 600s
+[20:22:28] (37/300) case1_p0.7_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 8.130 s, server rc=0 rows=8, check [A:OK B:OK] (ETA 0h35m35s)
+[20:22:29] (38/300) case1_p0.7_r1: Part2_Case1 server [0.7 1001], 4 client(s) (A=2 B=2), time-out 600s
+[20:22:45] (38/300) case1_p0.7_r1: OK ok=4 dnf=0 timeout=0 fail=0, 15.608 s, server rc=0 rows=18, check [A:OK B:OK] (ETA 0h36m26s)
+[20:22:46] (39/300) case1_p0.7_r2: Part2_Case1 server [0.7 1002], 4 client(s) (A=2 B=2), time-out 600s
+[20:23:01] (39/300) case1_p0.7_r2: OK ok=4 dnf=0 timeout=0 fail=0, 15.808 s, server rc=0 rows=18, check [A:OK B:OK] (ETA 0h37m14s)
+[20:23:02] (40/300) case1_p0.7_r3: Part2_Case1 server [0.7 1003], 4 client(s) (A=2 B=2), time-out 600s
+[20:23:13] (40/300) case1_p0.7_r3: OK ok=4 dnf=0 timeout=0 fail=0, 10.148 s, server rc=0 rows=11, check [A:OK B:OK] (ETA 0h37m22s)
+[20:23:14] (41/300) case1_p0.7_r4: Part2_Case1 server [0.7 1004], 4 client(s) (A=2 B=2), time-out 600s
+[20:23:24] (41/300) case1_p0.7_r4: OK ok=4 dnf=0 timeout=0 fail=0, 10.352 s, server rc=0 rows=9, check [A:OK B:OK] (ETA 0h37m31s)
+[20:23:25] (42/300) case1_p0.7_r5: Part2_Case1 server [0.7 1005], 4 client(s) (A=2 B=2), time-out 600s
+[20:23:33] (42/300) case1_p0.7_r5: OK ok=4 dnf=0 timeout=0 fail=0, 7.722 s, server rc=0 rows=7, check [A:OK B:OK] (ETA 0h37m22s)
+[20:23:34] (43/300) case1_p0.9_w1_warmup: Part2_Case1 server [0.9 1000], 4 client(s) (A=2 B=2), time-out 600s
+[20:23:58] (43/300) case1_p0.9_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 23.895 s, server rc=0 rows=31, check [A:OK B:OK] (ETA 0h38m50s)
+[20:23:59] (44/300) case1_p0.9_r1: Part2_Case1 server [0.9 1001], 4 client(s) (A=2 B=2), time-out 600s
+[20:24:50] (44/300) case1_p0.9_r1: OK ok=4 dnf=0 timeout=0 fail=0, 51.193 s, server rc=0 rows=79, check [A:OK B:OK] (ETA 0h42m52s)
+[20:24:51] (45/300) case1_p0.9_r2: Part2_Case1 server [0.9 1002], 4 client(s) (A=2 B=2), time-out 600s
+[20:25:45] (45/300) case1_p0.9_r2: OK ok=4 dnf=0 timeout=0 fail=0, 54.027 s, server rc=0 rows=76, check [A:OK B:OK] (ETA 0h46m57s)
+[20:25:46] (46/300) case1_p0.9_r3: Part2_Case1 server [0.9 1003], 4 client(s) (A=2 B=2), time-out 600s
+[20:26:12] (46/300) case1_p0.9_r3: OK ok=4 dnf=0 timeout=0 fail=0, 26.524 s, server rc=0 rows=33, check [A:OK B:OK] (ETA 0h48m17s)
+[20:26:13] (47/300) case1_p0.9_r4: Part2_Case1 server [0.9 1004], 4 client(s) (A=2 B=2), time-out 600s
+[20:26:41] (47/300) case1_p0.9_r4: OK ok=4 dnf=0 timeout=0 fail=0, 28.143 s, server rc=0 rows=34, check [A:OK B:OK] (ETA 0h49m41s)
+[20:26:42] (48/300) case1_p0.9_r5: Part2_Case1 server [0.9 1005], 4 client(s) (A=2 B=2), time-out 600s
+[20:26:59] (48/300) case1_p0.9_r5: OK ok=4 dnf=0 timeout=0 fail=0, 16.012 s, server rc=0 rows=17, check [A:OK B:OK] (ETA 0h49m57s)
+[20:27:00] (49/300) case2_p0_w1_warmup: Part2_Case2 server [0 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:27:06] (49/300) case2_p0_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h49m22s)
+[20:27:07] (50/300) case2_p0_r1: Part2_Case2 server [0 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:27:14] (50/300) case2_p0_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.506 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h48m49s)
+[20:27:15] (51/300) case2_p0_r2: Part2_Case2 server [0 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:27:21] (51/300) case2_p0_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h48m17s)
+[20:27:22] (52/300) case2_p0_r3: Part2_Case2 server [0 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:27:29] (52/300) case2_p0_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h47m45s)
+[20:27:30] (53/300) case2_p0_r4: Part2_Case2 server [0 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:27:36] (53/300) case2_p0_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h47m15s)
+[20:27:37] (54/300) case2_p0_r5: Part2_Case2 server [0 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:27:44] (54/300) case2_p0_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.511 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h46m45s)
+[20:27:45] (55/300) case2_p0.1_w1_warmup: Part2_Case2 server [0.1 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:27:51] (55/300) case2_p0.1_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h46m17s)
+[20:27:52] (56/300) case2_p0.1_r1: Part2_Case2 server [0.1 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:27:59] (56/300) case2_p0.1_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h45m49s)
+[20:28:00] (57/300) case2_p0.1_r2: Part2_Case2 server [0.1 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:28:06] (57/300) case2_p0.1_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h45m21s)
+[20:28:07] (58/300) case2_p0.1_r3: Part2_Case2 server [0.1 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:28:14] (58/300) case2_p0.1_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h44m55s)
+[20:28:15] (59/300) case2_p0.1_r4: Part2_Case2 server [0.1 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:28:21] (59/300) case2_p0.1_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h44m29s)
+[20:28:22] (60/300) case2_p0.1_r5: Part2_Case2 server [0.1 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:28:29] (60/300) case2_p0.1_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h44m03s)
+[20:28:30] (61/300) case2_p0.2_w1_warmup: Part2_Case2 server [0.2 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:28:36] (61/300) case2_p0.2_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h43m39s)
+[20:28:37] (62/300) case2_p0.2_r1: Part2_Case2 server [0.2 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:28:44] (62/300) case2_p0.2_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h43m14s)
+[20:28:45] (63/300) case2_p0.2_r2: Part2_Case2 server [0.2 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:28:51] (63/300) case2_p0.2_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.511 s, server rc=0 rows=6, check [A:OK B:OK] (ETA 0h42m51s)
+[20:28:52] (64/300) case2_p0.2_r3: Part2_Case2 server [0.2 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:28:59] (64/300) case2_p0.2_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.511 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h42m28s)
+[20:29:00] (65/300) case2_p0.2_r4: Part2_Case2 server [0.2 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:29:06] (65/300) case2_p0.2_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h42m05s)
+[20:29:07] (66/300) case2_p0.2_r5: Part2_Case2 server [0.2 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:29:14] (66/300) case2_p0.2_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=6, check [A:OK B:OK] (ETA 0h41m43s)
+[20:29:15] (67/300) case2_p0.3_w1_warmup: Part2_Case2 server [0.3 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:29:21] (67/300) case2_p0.3_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.511 s, server rc=0 rows=6, check [A:OK B:OK] (ETA 0h41m21s)
+[20:29:22] (68/300) case2_p0.3_r1: Part2_Case2 server [0.3 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:29:29] (68/300) case2_p0.3_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=8, check [A:OK B:OK] (ETA 0h41m00s)
+[20:29:30] (69/300) case2_p0.3_r2: Part2_Case2 server [0.3 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:29:36] (69/300) case2_p0.3_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=6, check [A:OK B:OK] (ETA 0h40m39s)
+[20:29:37] (70/300) case2_p0.3_r3: Part2_Case2 server [0.3 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:29:44] (70/300) case2_p0.3_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=5, check [A:OK B:OK] (ETA 0h40m18s)
+[20:29:45] (71/300) case2_p0.3_r4: Part2_Case2 server [0.3 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:29:51] (71/300) case2_p0.3_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.507 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h39m58s)
+[20:29:52] (72/300) case2_p0.3_r5: Part2_Case2 server [0.3 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:29:59] (72/300) case2_p0.3_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=6, check [A:OK B:OK] (ETA 0h39m38s)
+[20:30:00] (73/300) case2_p0.5_w1_warmup: Part2_Case2 server [0.5 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:30:07] (73/300) case2_p0.5_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.511 s, server rc=0 rows=8, check [A:OK B:OK] (ETA 0h39m18s)
+[20:30:08] (74/300) case2_p0.5_r1: Part2_Case2 server [0.5 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:30:14] (74/300) case2_p0.5_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=10, check [A:OK B:OK] (ETA 0h38m59s)
+[20:30:15] (75/300) case2_p0.5_r2: Part2_Case2 server [0.5 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:30:22] (75/300) case2_p0.5_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=9, check [A:OK B:OK] (ETA 0h38m40s)
+[20:30:23] (76/300) case2_p0.5_r3: Part2_Case2 server [0.5 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:30:29] (76/300) case2_p0.5_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=8, check [A:OK B:OK] (ETA 0h38m22s)
+[20:30:30] (77/300) case2_p0.5_r4: Part2_Case2 server [0.5 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:30:37] (77/300) case2_p0.5_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h38m03s)
+[20:30:38] (78/300) case2_p0.5_r5: Part2_Case2 server [0.5 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:30:44] (78/300) case2_p0.5_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=7, check [A:OK B:OK] (ETA 0h37m45s)
+[20:30:45] (79/300) case2_p0.7_w1_warmup: Part2_Case2 server [0.7 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:30:52] (79/300) case2_p0.7_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=8, check [A:OK B:OK] (ETA 0h37m28s)
+[20:30:53] (80/300) case2_p0.7_r1: Part2_Case2 server [0.7 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:30:59] (80/300) case2_p0.7_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=18, check [A:OK B:OK] (ETA 0h37m10s)
+[20:31:00] (81/300) case2_p0.7_r2: Part2_Case2 server [0.7 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:31:07] (81/300) case2_p0.7_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.713 s, server rc=0 rows=18, check [A:OK B:OK] (ETA 0h36m53s)
+[20:31:08] (82/300) case2_p0.7_r3: Part2_Case2 server [0.7 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:31:15] (82/300) case2_p0.7_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.712 s, server rc=0 rows=11, check [A:OK B:OK] (ETA 0h36m37s)
+[20:31:16] (83/300) case2_p0.7_r4: Part2_Case2 server [0.7 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:31:22] (83/300) case2_p0.7_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=9, check [A:OK B:OK] (ETA 0h36m20s)
+[20:31:23] (84/300) case2_p0.7_r5: Part2_Case2 server [0.7 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:31:30] (84/300) case2_p0.7_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=7, check [A:OK B:OK] (ETA 0h36m04s)
+[20:31:31] (85/300) case2_p0.9_w1_warmup: Part2_Case2 server [0.9 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:31:38] (85/300) case2_p0.9_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 7.116 s, server rc=0 rows=31, check [A:OK B:OK] (ETA 0h35m49s)
+[20:31:39] (86/300) case2_p0.9_r1: Part2_Case2 server [0.9 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:32:02] (86/300) case2_p0.9_r1: INCOMPLETE ok=3 dnf=1 timeout=0 fail=0, 23.120 s, server rc=0 rows=73, check [A:OK B:OK] (ETA 0h36m14s)
+[20:32:03] (87/300) case2_p0.9_r2: Part2_Case2 server [0.9 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:32:22] (87/300) case2_p0.9_r2: OK ok=4 dnf=0 timeout=0 fail=0, 18.858 s, server rc=0 rows=76, check [A:OK B:OK] (ETA 0h36m27s)
+[20:32:23] (88/300) case2_p0.9_r3: Part2_Case2 server [0.9 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:32:37] (88/300) case2_p0.9_r3: OK ok=4 dnf=0 timeout=0 fail=0, 14.410 s, server rc=0 rows=33, check [A:OK B:OK] (ETA 0h36m30s)
+[20:32:38] (89/300) case2_p0.9_r4: Part2_Case2 server [0.9 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:32:46] (89/300) case2_p0.9_r4: OK ok=4 dnf=0 timeout=0 fail=0, 7.319 s, server rc=0 rows=34, check [A:OK B:OK] (ETA 0h36m14s)
+[20:32:47] (90/300) case2_p0.9_r5: Part2_Case2 server [0.9 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:32:53] (90/300) case2_p0.9_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.712 s, server rc=0 rows=17, check [A:OK B:OK] (ETA 0h35m58s)
+[20:32:54] (91/300) enh_K1_threads_p0_w1_warmup: Part2_Case2_Enhanced server [0 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:33:01] (91/300) enh_K1_threads_p0_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=8, check [A:OK B:OK] (ETA 0h35m42s)
+[20:33:02] (92/300) enh_K1_threads_p0_r1: Part2_Case2_Enhanced server [0 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:33:08] (92/300) enh_K1_threads_p0_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=8, check [A:OK B:OK] (ETA 0h35m25s)
+[20:33:09] (93/300) enh_K1_threads_p0_r2: Part2_Case2_Enhanced server [0 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:33:16] (93/300) enh_K1_threads_p0_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.513 s, server rc=0 rows=8, check [A:OK B:OK] (ETA 0h35m09s)
+[20:33:17] (94/300) enh_K1_threads_p0_r3: Part2_Case2_Enhanced server [0 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:33:23] (94/300) enh_K1_threads_p0_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.513 s, server rc=0 rows=8, check [A:OK B:OK] (ETA 0h34m53s)
+[20:33:24] (95/300) enh_K1_threads_p0_r4: Part2_Case2_Enhanced server [0 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:33:31] (95/300) enh_K1_threads_p0_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=8, check [A:OK B:OK] (ETA 0h34m37s)
+[20:33:32] (96/300) enh_K1_threads_p0_r5: Part2_Case2_Enhanced server [0 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:33:38] (96/300) enh_K1_threads_p0_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=8, check [A:OK B:OK] (ETA 0h34m21s)
+[20:33:39] (97/300) enh_K1_threads_p0.1_w1_warmup: Part2_Case2_Enhanced server [0.1 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:33:46] (97/300) enh_K1_threads_p0.1_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=8, check [A:OK B:OK] (ETA 0h34m06s)
+[20:33:47] (98/300) enh_K1_threads_p0.1_r1: Part2_Case2_Enhanced server [0.1 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:33:53] (98/300) enh_K1_threads_p0.1_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=9, check [A:OK B:OK] (ETA 0h33m50s)
+[20:33:54] (99/300) enh_K1_threads_p0.1_r2: Part2_Case2_Enhanced server [0.1 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:34:01] (99/300) enh_K1_threads_p0.1_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=9, check [A:OK B:OK] (ETA 0h33m35s)
+[20:34:02] (100/300) enh_K1_threads_p0.1_r3: Part2_Case2_Enhanced server [0.1 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:34:08] (100/300) enh_K1_threads_p0.1_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.511 s, server rc=0 rows=8, check [A:OK B:OK] (ETA 0h33m20s)
+[20:34:09] (101/300) enh_K1_threads_p0.1_r4: Part2_Case2_Enhanced server [0.1 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:34:16] (101/300) enh_K1_threads_p0.1_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=8, check [A:OK B:OK] (ETA 0h33m05s)
+[20:34:17] (102/300) enh_K1_threads_p0.1_r5: Part2_Case2_Enhanced server [0.1 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:34:24] (102/300) enh_K1_threads_p0.1_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.511 s, server rc=0 rows=9, check [A:OK B:OK] (ETA 0h32m50s)
+[20:34:25] (103/300) enh_K1_threads_p0.2_w1_warmup: Part2_Case2_Enhanced server [0.2 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:34:31] (103/300) enh_K1_threads_p0.2_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=8, check [A:OK B:OK] (ETA 0h32m36s)
+[20:34:32] (104/300) enh_K1_threads_p0.2_r1: Part2_Case2_Enhanced server [0.2 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:34:39] (104/300) enh_K1_threads_p0.2_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=9, check [A:OK B:OK] (ETA 0h32m21s)
+[20:34:40] (105/300) enh_K1_threads_p0.2_r2: Part2_Case2_Enhanced server [0.2 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:34:46] (105/300) enh_K1_threads_p0.2_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.511 s, server rc=0 rows=10, check [A:OK B:OK] (ETA 0h32m07s)
+[20:34:47] (106/300) enh_K1_threads_p0.2_r3: Part2_Case2_Enhanced server [0.2 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:34:54] (106/300) enh_K1_threads_p0.2_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.507 s, server rc=0 rows=9, check [A:OK B:OK] (ETA 0h31m53s)
+[20:34:55] (107/300) enh_K1_threads_p0.2_r4: Part2_Case2_Enhanced server [0.2 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:35:01] (107/300) enh_K1_threads_p0.2_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=12, check [A:OK B:OK] (ETA 0h31m38s)
+[20:35:02] (108/300) enh_K1_threads_p0.2_r5: Part2_Case2_Enhanced server [0.2 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:35:09] (108/300) enh_K1_threads_p0.2_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.511 s, server rc=0 rows=9, check [A:OK B:OK] (ETA 0h31m25s)
+[20:35:10] (109/300) enh_K1_threads_p0.3_w1_warmup: Part2_Case2_Enhanced server [0.3 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:35:16] (109/300) enh_K1_threads_p0.3_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=9, check [A:OK B:OK] (ETA 0h31m11s)
+[20:35:17] (110/300) enh_K1_threads_p0.3_r1: Part2_Case2_Enhanced server [0.3 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:35:24] (110/300) enh_K1_threads_p0.3_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.511 s, server rc=0 rows=13, check [A:OK B:OK] (ETA 0h30m57s)
+[20:35:25] (111/300) enh_K1_threads_p0.3_r2: Part2_Case2_Enhanced server [0.3 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:35:31] (111/300) enh_K1_threads_p0.3_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.511 s, server rc=0 rows=10, check [A:OK B:OK] (ETA 0h30m43s)
+[20:35:32] (112/300) enh_K1_threads_p0.3_r3: Part2_Case2_Enhanced server [0.3 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:35:39] (112/300) enh_K1_threads_p0.3_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.513 s, server rc=0 rows=10, check [A:OK B:OK] (ETA 0h30m30s)
+[20:35:40] (113/300) enh_K1_threads_p0.3_r4: Part2_Case2_Enhanced server [0.3 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:35:46] (113/300) enh_K1_threads_p0.3_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=12, check [A:OK B:OK] (ETA 0h30m16s)
+[20:35:47] (114/300) enh_K1_threads_p0.3_r5: Part2_Case2_Enhanced server [0.3 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:35:54] (114/300) enh_K1_threads_p0.3_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=9, check [A:OK B:OK] (ETA 0h30m03s)
+[20:35:55] (115/300) enh_K1_threads_p0.5_w1_warmup: Part2_Case2_Enhanced server [0.5 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:36:01] (115/300) enh_K1_threads_p0.5_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=11, check [A:OK B:OK] (ETA 0h29m50s)
+[20:36:02] (116/300) enh_K1_threads_p0.5_r1: Part2_Case2_Enhanced server [0.5 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:36:09] (116/300) enh_K1_threads_p0.5_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=16, check [A:OK B:OK] (ETA 0h29m37s)
+[20:36:10] (117/300) enh_K1_threads_p0.5_r2: Part2_Case2_Enhanced server [0.5 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:36:16] (117/300) enh_K1_threads_p0.5_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=13, check [A:OK B:OK] (ETA 0h29m24s)
+[20:36:17] (118/300) enh_K1_threads_p0.5_r3: Part2_Case2_Enhanced server [0.5 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:36:24] (118/300) enh_K1_threads_p0.5_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=15, check [A:OK B:OK] (ETA 0h29m11s)
+[20:36:25] (119/300) enh_K1_threads_p0.5_r4: Part2_Case2_Enhanced server [0.5 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:36:31] (119/300) enh_K1_threads_p0.5_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=12, check [A:OK B:OK] (ETA 0h28m58s)
+[20:36:32] (120/300) enh_K1_threads_p0.5_r5: Part2_Case2_Enhanced server [0.5 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:36:39] (120/300) enh_K1_threads_p0.5_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=9, check [A:OK B:OK] (ETA 0h28m45s)
+[20:36:40] (121/300) enh_K1_threads_p0.7_w1_warmup: Part2_Case2_Enhanced server [0.7 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:36:46] (121/300) enh_K1_threads_p0.7_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=13, check [A:OK B:OK] (ETA 0h28m33s)
+[20:36:47] (122/300) enh_K1_threads_p0.7_r1: Part2_Case2_Enhanced server [0.7 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:36:54] (122/300) enh_K1_threads_p0.7_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=25, check [A:OK B:OK] (ETA 0h28m20s)
+[20:36:55] (123/300) enh_K1_threads_p0.7_r2: Part2_Case2_Enhanced server [0.7 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:37:01] (123/300) enh_K1_threads_p0.7_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=22, check [A:OK B:OK] (ETA 0h28m07s)
+[20:37:02] (124/300) enh_K1_threads_p0.7_r3: Part2_Case2_Enhanced server [0.7 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:37:09] (124/300) enh_K1_threads_p0.7_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=25, check [A:OK B:OK] (ETA 0h27m55s)
+[20:37:10] (125/300) enh_K1_threads_p0.7_r4: Part2_Case2_Enhanced server [0.7 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:37:17] (125/300) enh_K1_threads_p0.7_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=12, check [A:OK B:OK] (ETA 0h27m43s)
+[20:37:18] (126/300) enh_K1_threads_p0.7_r5: Part2_Case2_Enhanced server [0.7 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:37:24] (126/300) enh_K1_threads_p0.7_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=17, check [A:OK B:OK] (ETA 0h27m30s)
+[20:37:25] (127/300) enh_K1_threads_p0.9_w1_warmup: Part2_Case2_Enhanced server [0.9 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:37:32] (127/300) enh_K1_threads_p0.9_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=31, check [A:OK B:OK] (ETA 0h27m18s)
+[20:37:33] (128/300) enh_K1_threads_p0.9_r1: Part2_Case2_Enhanced server [0.9 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:37:39] (128/300) enh_K1_threads_p0.9_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.709 s, server rc=0 rows=79, check [A:OK B:OK] (ETA 0h27m06s)
+[20:37:40] (129/300) enh_K1_threads_p0.9_r2: Part2_Case2_Enhanced server [0.9 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:37:47] (129/300) enh_K1_threads_p0.9_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.711 s, server rc=0 rows=76, check [A:OK B:OK] (ETA 0h26m55s)
+[20:37:48] (130/300) enh_K1_threads_p0.9_r3: Part2_Case2_Enhanced server [0.9 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:37:55] (130/300) enh_K1_threads_p0.9_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.713 s, server rc=0 rows=36, check [A:OK B:OK] (ETA 0h26m43s)
+[20:37:56] (131/300) enh_K1_threads_p0.9_r4: Part2_Case2_Enhanced server [0.9 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:38:02] (131/300) enh_K1_threads_p0.9_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.713 s, server rc=0 rows=41, check [A:OK B:OK] (ETA 0h26m31s)
+[20:38:03] (132/300) enh_K1_threads_p0.9_r5: Part2_Case2_Enhanced server [0.9 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:38:10] (132/300) enh_K1_threads_p0.9_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.511 s, server rc=0 rows=28, check [A:OK B:OK] (ETA 0h26m19s)
+[20:38:11] (133/300) enh_K2_threads_p0_w1_warmup: Part2_Case2_Enhanced server [0 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:38:17] (133/300) enh_K2_threads_p0_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=12, check [A:OK B:OK] (ETA 0h26m08s)
+[20:38:18] (134/300) enh_K2_threads_p0_r1: Part2_Case2_Enhanced server [0 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:38:25] (134/300) enh_K2_threads_p0_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=12, check [A:OK B:OK] (ETA 0h25m56s)
+[20:38:26] (135/300) enh_K2_threads_p0_r2: Part2_Case2_Enhanced server [0 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:38:33] (135/300) enh_K2_threads_p0_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=12, check [A:OK B:OK] (ETA 0h25m44s)
+[20:38:34] (136/300) enh_K2_threads_p0_r3: Part2_Case2_Enhanced server [0 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:38:40] (136/300) enh_K2_threads_p0_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=12, check [A:OK B:OK] (ETA 0h25m33s)
+[20:38:41] (137/300) enh_K2_threads_p0_r4: Part2_Case2_Enhanced server [0 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:38:48] (137/300) enh_K2_threads_p0_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=12, check [A:OK B:OK] (ETA 0h25m21s)
+[20:38:49] (138/300) enh_K2_threads_p0_r5: Part2_Case2_Enhanced server [0 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:38:55] (138/300) enh_K2_threads_p0_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=12, check [A:OK B:OK] (ETA 0h25m10s)
+[20:38:56] (139/300) enh_K2_threads_p0.1_w1_warmup: Part2_Case2_Enhanced server [0.1 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:39:03] (139/300) enh_K2_threads_p0.1_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=13, check [A:OK B:OK] (ETA 0h24m58s)
+[20:39:04] (140/300) enh_K2_threads_p0.1_r1: Part2_Case2_Enhanced server [0.1 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:39:10] (140/300) enh_K2_threads_p0.1_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=14, check [A:OK B:OK] (ETA 0h24m47s)
+[20:39:11] (141/300) enh_K2_threads_p0.1_r2: Part2_Case2_Enhanced server [0.1 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:39:18] (141/300) enh_K2_threads_p0.1_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.507 s, server rc=0 rows=13, check [A:OK B:OK] (ETA 0h24m35s)
+[20:39:19] (142/300) enh_K2_threads_p0.1_r3: Part2_Case2_Enhanced server [0.1 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:39:25] (142/300) enh_K2_threads_p0.1_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=12, check [A:OK B:OK] (ETA 0h24m24s)
+[20:39:26] (143/300) enh_K2_threads_p0.1_r4: Part2_Case2_Enhanced server [0.1 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:39:33] (143/300) enh_K2_threads_p0.1_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.512 s, server rc=0 rows=13, check [A:OK B:OK] (ETA 0h24m13s)
+[20:39:34] (144/300) enh_K2_threads_p0.1_r5: Part2_Case2_Enhanced server [0.1 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:39:40] (144/300) enh_K2_threads_p0.1_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=13, check [A:OK B:OK] (ETA 0h24m02s)
+[20:39:41] (145/300) enh_K2_threads_p0.2_w1_warmup: Part2_Case2_Enhanced server [0.2 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:39:48] (145/300) enh_K2_threads_p0.2_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=13, check [A:OK B:OK] (ETA 0h23m51s)
+[20:39:49] (146/300) enh_K2_threads_p0.2_r1: Part2_Case2_Enhanced server [0.2 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:39:55] (146/300) enh_K2_threads_p0.2_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=15, check [A:OK B:OK] (ETA 0h23m40s)
+[20:39:56] (147/300) enh_K2_threads_p0.2_r2: Part2_Case2_Enhanced server [0.2 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:40:03] (147/300) enh_K2_threads_p0.2_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.507 s, server rc=0 rows=15, check [A:OK B:OK] (ETA 0h23m29s)
+[20:40:04] (148/300) enh_K2_threads_p0.2_r3: Part2_Case2_Enhanced server [0.2 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:40:10] (148/300) enh_K2_threads_p0.2_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=15, check [A:OK B:OK] (ETA 0h23m18s)
+[20:40:11] (149/300) enh_K2_threads_p0.2_r4: Part2_Case2_Enhanced server [0.2 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:40:18] (149/300) enh_K2_threads_p0.2_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=16, check [A:OK B:OK] (ETA 0h23m07s)
+[20:40:19] (150/300) enh_K2_threads_p0.2_r5: Part2_Case2_Enhanced server [0.2 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:40:25] (150/300) enh_K2_threads_p0.2_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=13, check [A:OK B:OK] (ETA 0h22m56s)
+[20:40:26] (151/300) enh_K2_threads_p0.3_w1_warmup: Part2_Case2_Enhanced server [0.3 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:40:33] (151/300) enh_K2_threads_p0.3_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=14, check [A:OK B:OK] (ETA 0h22m45s)
+[20:40:34] (152/300) enh_K2_threads_p0.3_r1: Part2_Case2_Enhanced server [0.3 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:40:40] (152/300) enh_K2_threads_p0.3_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=20, check [A:OK B:OK] (ETA 0h22m34s)
+[20:40:41] (153/300) enh_K2_threads_p0.3_r2: Part2_Case2_Enhanced server [0.3 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:40:48] (153/300) enh_K2_threads_p0.3_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=16, check [A:OK B:OK] (ETA 0h22m24s)
+[20:40:49] (154/300) enh_K2_threads_p0.3_r3: Part2_Case2_Enhanced server [0.3 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:40:55] (154/300) enh_K2_threads_p0.3_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=18, check [A:OK B:OK] (ETA 0h22m13s)
+[20:40:56] (155/300) enh_K2_threads_p0.3_r4: Part2_Case2_Enhanced server [0.3 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:41:03] (155/300) enh_K2_threads_p0.3_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.511 s, server rc=0 rows=16, check [A:OK B:OK] (ETA 0h22m02s)
+[20:41:04] (156/300) enh_K2_threads_p0.3_r5: Part2_Case2_Enhanced server [0.3 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:41:10] (156/300) enh_K2_threads_p0.3_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=15, check [A:OK B:OK] (ETA 0h21m52s)
+[20:41:11] (157/300) enh_K2_threads_p0.5_w1_warmup: Part2_Case2_Enhanced server [0.5 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:41:18] (157/300) enh_K2_threads_p0.5_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=17, check [A:OK B:OK] (ETA 0h21m41s)
+[20:41:19] (158/300) enh_K2_threads_p0.5_r1: Part2_Case2_Enhanced server [0.5 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:41:25] (158/300) enh_K2_threads_p0.5_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=27, check [A:OK B:OK] (ETA 0h21m31s)
+[20:41:26] (159/300) enh_K2_threads_p0.5_r2: Part2_Case2_Enhanced server [0.5 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:41:33] (159/300) enh_K2_threads_p0.5_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=22, check [A:OK B:OK] (ETA 0h21m20s)
+[20:41:34] (160/300) enh_K2_threads_p0.5_r3: Part2_Case2_Enhanced server [0.5 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:41:41] (160/300) enh_K2_threads_p0.5_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=23, check [A:OK B:OK] (ETA 0h21m10s)
+[20:41:42] (161/300) enh_K2_threads_p0.5_r4: Part2_Case2_Enhanced server [0.5 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:41:48] (161/300) enh_K2_threads_p0.5_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=20, check [A:OK B:OK] (ETA 0h20m59s)
+[20:41:49] (162/300) enh_K2_threads_p0.5_r5: Part2_Case2_Enhanced server [0.5 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:41:56] (162/300) enh_K2_threads_p0.5_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=20, check [A:OK B:OK] (ETA 0h20m49s)
+[20:41:57] (163/300) enh_K2_threads_p0.7_w1_warmup: Part2_Case2_Enhanced server [0.7 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:42:03] (163/300) enh_K2_threads_p0.7_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=31, check [A:OK B:OK] (ETA 0h20m38s)
+[20:42:04] (164/300) enh_K2_threads_p0.7_r1: Part2_Case2_Enhanced server [0.7 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:42:11] (164/300) enh_K2_threads_p0.7_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=36, check [A:OK B:OK] (ETA 0h20m28s)
+[20:42:12] (165/300) enh_K2_threads_p0.7_r2: Part2_Case2_Enhanced server [0.7 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:42:18] (165/300) enh_K2_threads_p0.7_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=47, check [A:OK B:OK] (ETA 0h20m18s)
+[20:42:19] (166/300) enh_K2_threads_p0.7_r3: Part2_Case2_Enhanced server [0.7 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:42:26] (166/300) enh_K2_threads_p0.7_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=36, check [A:OK B:OK] (ETA 0h20m08s)
+[20:42:27] (167/300) enh_K2_threads_p0.7_r4: Part2_Case2_Enhanced server [0.7 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:42:33] (167/300) enh_K2_threads_p0.7_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=20, check [A:OK B:OK] (ETA 0h19m57s)
+[20:42:34] (168/300) enh_K2_threads_p0.7_r5: Part2_Case2_Enhanced server [0.7 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:42:41] (168/300) enh_K2_threads_p0.7_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=32, check [A:OK B:OK] (ETA 0h19m47s)
+[20:42:42] (169/300) enh_K2_threads_p0.9_w1_warmup: Part2_Case2_Enhanced server [0.9 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:42:48] (169/300) enh_K2_threads_p0.9_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=53, check [A:OK B:OK] (ETA 0h19m37s)
+[20:42:49] (170/300) enh_K2_threads_p0.9_r1: Part2_Case2_Enhanced server [0.9 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:42:56] (170/300) enh_K2_threads_p0.9_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=128, check [A:OK B:OK] (ETA 0h19m27s)
+[20:42:57] (171/300) enh_K2_threads_p0.9_r2: Part2_Case2_Enhanced server [0.9 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:43:03] (171/300) enh_K2_threads_p0.9_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.713 s, server rc=0 rows=127, check [A:OK B:OK] (ETA 0h19m17s)
+[20:43:04] (172/300) enh_K2_threads_p0.9_r3: Part2_Case2_Enhanced server [0.9 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:43:11] (172/300) enh_K2_threads_p0.9_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=89, check [A:OK B:OK] (ETA 0h19m07s)
+[20:43:12] (173/300) enh_K2_threads_p0.9_r4: Part2_Case2_Enhanced server [0.9 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:43:19] (173/300) enh_K2_threads_p0.9_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.512 s, server rc=0 rows=67, check [A:OK B:OK] (ETA 0h18m57s)
+[20:43:20] (174/300) enh_K2_threads_p0.9_r5: Part2_Case2_Enhanced server [0.9 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:43:26] (174/300) enh_K2_threads_p0.9_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.511 s, server rc=0 rows=73, check [A:OK B:OK] (ETA 0h18m47s)
+[20:43:27] (175/300) enh_K4_threads_p0_w1_warmup: Part2_Case2_Enhanced server [0 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:43:34] (175/300) enh_K4_threads_p0_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.513 s, server rc=0 rows=20, check [A:OK B:OK] (ETA 0h18m37s)
+[20:43:35] (176/300) enh_K4_threads_p0_r1: Part2_Case2_Enhanced server [0 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:43:41] (176/300) enh_K4_threads_p0_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.511 s, server rc=0 rows=20, check [A:OK B:OK] (ETA 0h18m27s)
+[20:43:42] (177/300) enh_K4_threads_p0_r2: Part2_Case2_Enhanced server [0 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:43:49] (177/300) enh_K4_threads_p0_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=20, check [A:OK B:OK] (ETA 0h18m17s)
+[20:43:50] (178/300) enh_K4_threads_p0_r3: Part2_Case2_Enhanced server [0 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:43:56] (178/300) enh_K4_threads_p0_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.512 s, server rc=0 rows=20, check [A:OK B:OK] (ETA 0h18m07s)
+[20:43:57] (179/300) enh_K4_threads_p0_r4: Part2_Case2_Enhanced server [0 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:44:04] (179/300) enh_K4_threads_p0_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.511 s, server rc=0 rows=20, check [A:OK B:OK] (ETA 0h17m57s)
+[20:44:05] (180/300) enh_K4_threads_p0_r5: Part2_Case2_Enhanced server [0 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:44:11] (180/300) enh_K4_threads_p0_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=20, check [A:OK B:OK] (ETA 0h17m48s)
+[20:44:12] (181/300) enh_K4_threads_p0.1_w1_warmup: Part2_Case2_Enhanced server [0.1 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:44:19] (181/300) enh_K4_threads_p0.1_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=21, check [A:OK B:OK] (ETA 0h17m38s)
+[20:44:20] (182/300) enh_K4_threads_p0.1_r1: Part2_Case2_Enhanced server [0.1 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:44:26] (182/300) enh_K4_threads_p0.1_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.512 s, server rc=0 rows=22, check [A:OK B:OK] (ETA 0h17m28s)
+[20:44:27] (183/300) enh_K4_threads_p0.1_r2: Part2_Case2_Enhanced server [0.1 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:44:34] (183/300) enh_K4_threads_p0.1_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.511 s, server rc=0 rows=21, check [A:OK B:OK] (ETA 0h17m18s)
+[20:44:35] (184/300) enh_K4_threads_p0.1_r3: Part2_Case2_Enhanced server [0.1 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:44:41] (184/300) enh_K4_threads_p0.1_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.511 s, server rc=0 rows=21, check [A:OK B:OK] (ETA 0h17m08s)
+[20:44:42] (185/300) enh_K4_threads_p0.1_r4: Part2_Case2_Enhanced server [0.1 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:44:49] (185/300) enh_K4_threads_p0.1_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=21, check [A:OK B:OK] (ETA 0h16m59s)
+[20:44:50] (186/300) enh_K4_threads_p0.1_r5: Part2_Case2_Enhanced server [0.1 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:44:56] (186/300) enh_K4_threads_p0.1_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=21, check [A:OK B:OK] (ETA 0h16m49s)
+[20:44:57] (187/300) enh_K4_threads_p0.2_w1_warmup: Part2_Case2_Enhanced server [0.2 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:45:04] (187/300) enh_K4_threads_p0.2_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=21, check [A:OK B:OK] (ETA 0h16m39s)
+[20:45:05] (188/300) enh_K4_threads_p0.2_r1: Part2_Case2_Enhanced server [0.2 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:45:11] (188/300) enh_K4_threads_p0.2_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=23, check [A:OK B:OK] (ETA 0h16m30s)
+[20:45:12] (189/300) enh_K4_threads_p0.2_r2: Part2_Case2_Enhanced server [0.2 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:45:19] (189/300) enh_K4_threads_p0.2_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=23, check [A:OK B:OK] (ETA 0h16m20s)
+[20:45:20] (190/300) enh_K4_threads_p0.2_r3: Part2_Case2_Enhanced server [0.2 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:45:26] (190/300) enh_K4_threads_p0.2_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=28, check [A:OK B:OK] (ETA 0h16m10s)
+[20:45:27] (191/300) enh_K4_threads_p0.2_r4: Part2_Case2_Enhanced server [0.2 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:45:34] (191/300) enh_K4_threads_p0.2_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=26, check [A:OK B:OK] (ETA 0h16m01s)
+[20:45:35] (192/300) enh_K4_threads_p0.2_r5: Part2_Case2_Enhanced server [0.2 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:45:41] (192/300) enh_K4_threads_p0.2_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=22, check [A:OK B:OK] (ETA 0h15m51s)
+[20:45:42] (193/300) enh_K4_threads_p0.3_w1_warmup: Part2_Case2_Enhanced server [0.3 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:45:49] (193/300) enh_K4_threads_p0.3_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=24, check [A:OK B:OK] (ETA 0h15m42s)
+[20:45:50] (194/300) enh_K4_threads_p0.3_r1: Part2_Case2_Enhanced server [0.3 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:45:56] (194/300) enh_K4_threads_p0.3_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=31, check [A:OK B:OK] (ETA 0h15m32s)
+[20:45:57] (195/300) enh_K4_threads_p0.3_r2: Part2_Case2_Enhanced server [0.3 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:46:04] (195/300) enh_K4_threads_p0.3_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.511 s, server rc=0 rows=25, check [A:OK B:OK] (ETA 0h15m23s)
+[20:46:05] (196/300) enh_K4_threads_p0.3_r3: Part2_Case2_Enhanced server [0.3 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:46:12] (196/300) enh_K4_threads_p0.3_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=33, check [A:OK B:OK] (ETA 0h15m13s)
+[20:46:13] (197/300) enh_K4_threads_p0.3_r4: Part2_Case2_Enhanced server [0.3 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:46:19] (197/300) enh_K4_threads_p0.3_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=27, check [A:OK B:OK] (ETA 0h15m04s)
+[20:46:20] (198/300) enh_K4_threads_p0.3_r5: Part2_Case2_Enhanced server [0.3 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:46:27] (198/300) enh_K4_threads_p0.3_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=24, check [A:OK B:OK] (ETA 0h14m54s)
+[20:46:28] (199/300) enh_K4_threads_p0.5_w1_warmup: Part2_Case2_Enhanced server [0.5 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:46:34] (199/300) enh_K4_threads_p0.5_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=36, check [A:OK B:OK] (ETA 0h14m45s)
+[20:46:35] (200/300) enh_K4_threads_p0.5_r1: Part2_Case2_Enhanced server [0.5 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:46:42] (200/300) enh_K4_threads_p0.5_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=40, check [A:OK B:OK] (ETA 0h14m36s)
+[20:46:43] (201/300) enh_K4_threads_p0.5_r2: Part2_Case2_Enhanced server [0.5 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:46:49] (201/300) enh_K4_threads_p0.5_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=40, check [A:OK B:OK] (ETA 0h14m26s)
+[20:46:50] (202/300) enh_K4_threads_p0.5_r3: Part2_Case2_Enhanced server [0.5 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:46:57] (202/300) enh_K4_threads_p0.5_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=41, check [A:OK B:OK] (ETA 0h14m17s)
+[20:46:58] (203/300) enh_K4_threads_p0.5_r4: Part2_Case2_Enhanced server [0.5 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:47:04] (203/300) enh_K4_threads_p0.5_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.507 s, server rc=0 rows=34, check [A:OK B:OK] (ETA 0h14m07s)
+[20:47:05] (204/300) enh_K4_threads_p0.5_r5: Part2_Case2_Enhanced server [0.5 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:47:12] (204/300) enh_K4_threads_p0.5_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=34, check [A:OK B:OK] (ETA 0h13m58s)
+[20:47:13] (205/300) enh_K4_threads_p0.7_w1_warmup: Part2_Case2_Enhanced server [0.7 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:47:19] (205/300) enh_K4_threads_p0.7_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=53, check [A:OK B:OK] (ETA 0h13m49s)
+[20:47:20] (206/300) enh_K4_threads_p0.7_r1: Part2_Case2_Enhanced server [0.7 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:47:27] (206/300) enh_K4_threads_p0.7_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.506 s, server rc=0 rows=68, check [A:OK B:OK] (ETA 0h13m40s)
+[20:47:28] (207/300) enh_K4_threads_p0.7_r2: Part2_Case2_Enhanced server [0.7 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:47:34] (207/300) enh_K4_threads_p0.7_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=70, check [A:OK B:OK] (ETA 0h13m30s)
+[20:47:35] (208/300) enh_K4_threads_p0.7_r3: Part2_Case2_Enhanced server [0.7 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:47:42] (208/300) enh_K4_threads_p0.7_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=69, check [A:OK B:OK] (ETA 0h13m21s)
+[20:47:43] (209/300) enh_K4_threads_p0.7_r4: Part2_Case2_Enhanced server [0.7 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:47:49] (209/300) enh_K4_threads_p0.7_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=45, check [A:OK B:OK] (ETA 0h13m12s)
+[20:47:50] (210/300) enh_K4_threads_p0.7_r5: Part2_Case2_Enhanced server [0.7 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:47:57] (210/300) enh_K4_threads_p0.7_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=47, check [A:OK B:OK] (ETA 0h13m03s)
+[20:47:58] (211/300) enh_K4_threads_p0.9_w1_warmup: Part2_Case2_Enhanced server [0.9 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:48:04] (211/300) enh_K4_threads_p0.9_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.507 s, server rc=0 rows=150, check [A:OK B:OK] (ETA 0h12m53s)
+[20:48:05] (212/300) enh_K4_threads_p0.9_r1: Part2_Case2_Enhanced server [0.9 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:48:12] (212/300) enh_K4_threads_p0.9_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=214, check [A:OK B:OK] (ETA 0h12m44s)
+[20:48:13] (213/300) enh_K4_threads_p0.9_r2: Part2_Case2_Enhanced server [0.9 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:48:19] (213/300) enh_K4_threads_p0.9_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.507 s, server rc=0 rows=184, check [A:OK B:OK] (ETA 0h12m35s)
+[20:48:20] (214/300) enh_K4_threads_p0.9_r3: Part2_Case2_Enhanced server [0.9 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:48:27] (214/300) enh_K4_threads_p0.9_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=187, check [A:OK B:OK] (ETA 0h12m26s)
+[20:48:28] (215/300) enh_K4_threads_p0.9_r4: Part2_Case2_Enhanced server [0.9 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:48:34] (215/300) enh_K4_threads_p0.9_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.511 s, server rc=0 rows=130, check [A:OK B:OK] (ETA 0h12m17s)
+[20:48:35] (216/300) enh_K4_threads_p0.9_r5: Part2_Case2_Enhanced server [0.9 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:48:42] (216/300) enh_K4_threads_p0.9_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.514 s, server rc=0 rows=150, check [A:OK B:OK] (ETA 0h12m08s)
+[20:48:43] (217/300) enh_K8_threads_p0_w1_warmup: Part2_Case2_Enhanced server [0 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:48:49] (217/300) enh_K8_threads_p0_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.514 s, server rc=0 rows=36, check [A:OK B:OK] (ETA 0h11m59s)
+[20:48:50] (218/300) enh_K8_threads_p0_r1: Part2_Case2_Enhanced server [0 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:48:57] (218/300) enh_K8_threads_p0_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.513 s, server rc=0 rows=36, check [A:OK B:OK] (ETA 0h11m49s)
+[20:48:58] (219/300) enh_K8_threads_p0_r2: Part2_Case2_Enhanced server [0 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:49:05] (219/300) enh_K8_threads_p0_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.513 s, server rc=0 rows=36, check [A:OK B:OK] (ETA 0h11m40s)
+[20:49:06] (220/300) enh_K8_threads_p0_r3: Part2_Case2_Enhanced server [0 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:49:12] (220/300) enh_K8_threads_p0_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.515 s, server rc=0 rows=36, check [A:OK B:OK] (ETA 0h11m31s)
+[20:49:13] (221/300) enh_K8_threads_p0_r4: Part2_Case2_Enhanced server [0 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:49:20] (221/300) enh_K8_threads_p0_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.512 s, server rc=0 rows=36, check [A:OK B:OK] (ETA 0h11m22s)
+[20:49:21] (222/300) enh_K8_threads_p0_r5: Part2_Case2_Enhanced server [0 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:49:27] (222/300) enh_K8_threads_p0_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=36, check [A:OK B:OK] (ETA 0h11m13s)
+[20:49:28] (223/300) enh_K8_threads_p0.1_w1_warmup: Part2_Case2_Enhanced server [0.1 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:49:35] (223/300) enh_K8_threads_p0.1_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.507 s, server rc=0 rows=41, check [A:OK B:OK] (ETA 0h11m04s)
+[20:49:36] (224/300) enh_K8_threads_p0.1_r1: Part2_Case2_Enhanced server [0.1 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:49:42] (224/300) enh_K8_threads_p0.1_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=39, check [A:OK B:OK] (ETA 0h10m55s)
+[20:49:43] (225/300) enh_K8_threads_p0.1_r2: Part2_Case2_Enhanced server [0.1 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:49:50] (225/300) enh_K8_threads_p0.1_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=40, check [A:OK B:OK] (ETA 0h10m46s)
+[20:49:51] (226/300) enh_K8_threads_p0.1_r3: Part2_Case2_Enhanced server [0.1 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:49:57] (226/300) enh_K8_threads_p0.1_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.506 s, server rc=0 rows=38, check [A:OK B:OK] (ETA 0h10m37s)
+[20:49:58] (227/300) enh_K8_threads_p0.1_r4: Part2_Case2_Enhanced server [0.1 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:50:05] (227/300) enh_K8_threads_p0.1_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.505 s, server rc=0 rows=39, check [A:OK B:OK] (ETA 0h10m28s)
+[20:50:06] (228/300) enh_K8_threads_p0.1_r5: Part2_Case2_Enhanced server [0.1 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:50:12] (228/300) enh_K8_threads_p0.1_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.507 s, server rc=0 rows=39, check [A:OK B:OK] (ETA 0h10m19s)
+[20:50:13] (229/300) enh_K8_threads_p0.2_w1_warmup: Part2_Case2_Enhanced server [0.2 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:50:20] (229/300) enh_K8_threads_p0.2_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.504 s, server rc=0 rows=42, check [A:OK B:OK] (ETA 0h10m10s)
+[20:50:21] (230/300) enh_K8_threads_p0.2_r1: Part2_Case2_Enhanced server [0.2 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:50:27] (230/300) enh_K8_threads_p0.2_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.507 s, server rc=0 rows=44, check [A:OK B:OK] (ETA 0h10m01s)
+[20:50:28] (231/300) enh_K8_threads_p0.2_r2: Part2_Case2_Enhanced server [0.2 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:50:35] (231/300) enh_K8_threads_p0.2_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.507 s, server rc=0 rows=45, check [A:OK B:OK] (ETA 0h09m52s)
+[20:50:36] (232/300) enh_K8_threads_p0.2_r3: Part2_Case2_Enhanced server [0.2 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:50:42] (232/300) enh_K8_threads_p0.2_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=49, check [A:OK B:OK] (ETA 0h09m43s)
+[20:50:43] (233/300) enh_K8_threads_p0.2_r4: Part2_Case2_Enhanced server [0.2 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:50:50] (233/300) enh_K8_threads_p0.2_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=45, check [A:OK B:OK] (ETA 0h09m35s)
+[20:50:51] (234/300) enh_K8_threads_p0.2_r5: Part2_Case2_Enhanced server [0.2 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:50:57] (234/300) enh_K8_threads_p0.2_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=40, check [A:OK B:OK] (ETA 0h09m26s)
+[20:50:58] (235/300) enh_K8_threads_p0.3_w1_warmup: Part2_Case2_Enhanced server [0.3 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:51:05] (235/300) enh_K8_threads_p0.3_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=46, check [A:OK B:OK] (ETA 0h09m17s)
+[20:51:06] (236/300) enh_K8_threads_p0.3_r1: Part2_Case2_Enhanced server [0.3 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:51:12] (236/300) enh_K8_threads_p0.3_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.506 s, server rc=0 rows=54, check [A:OK B:OK] (ETA 0h09m08s)
+[20:51:13] (237/300) enh_K8_threads_p0.3_r2: Part2_Case2_Enhanced server [0.3 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:51:20] (237/300) enh_K8_threads_p0.3_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=49, check [A:OK B:OK] (ETA 0h08m59s)
+[20:51:21] (238/300) enh_K8_threads_p0.3_r3: Part2_Case2_Enhanced server [0.3 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:51:27] (238/300) enh_K8_threads_p0.3_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.505 s, server rc=0 rows=58, check [A:OK B:OK] (ETA 0h08m50s)
+[20:51:28] (239/300) enh_K8_threads_p0.3_r4: Part2_Case2_Enhanced server [0.3 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:51:35] (239/300) enh_K8_threads_p0.3_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.507 s, server rc=0 rows=52, check [A:OK B:OK] (ETA 0h08m41s)
+[20:51:36] (240/300) enh_K8_threads_p0.3_r5: Part2_Case2_Enhanced server [0.3 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:51:42] (240/300) enh_K8_threads_p0.3_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=43, check [A:OK B:OK] (ETA 0h08m33s)
+[20:51:43] (241/300) enh_K8_threads_p0.5_w1_warmup: Part2_Case2_Enhanced server [0.5 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:51:50] (241/300) enh_K8_threads_p0.5_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=71, check [A:OK B:OK] (ETA 0h08m24s)
+[20:51:51] (242/300) enh_K8_threads_p0.5_r1: Part2_Case2_Enhanced server [0.5 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:51:57] (242/300) enh_K8_threads_p0.5_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.507 s, server rc=0 rows=81, check [A:OK B:OK] (ETA 0h08m15s)
+[20:51:58] (243/300) enh_K8_threads_p0.5_r2: Part2_Case2_Enhanced server [0.5 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:52:05] (243/300) enh_K8_threads_p0.5_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=66, check [A:OK B:OK] (ETA 0h08m06s)
+[20:52:06] (244/300) enh_K8_threads_p0.5_r3: Part2_Case2_Enhanced server [0.5 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:52:12] (244/300) enh_K8_threads_p0.5_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=70, check [A:OK B:OK] (ETA 0h07m57s)
+[20:52:14] (245/300) enh_K8_threads_p0.5_r4: Part2_Case2_Enhanced server [0.5 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:52:20] (245/300) enh_K8_threads_p0.5_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.507 s, server rc=0 rows=62, check [A:OK B:OK] (ETA 0h07m49s)
+[20:52:21] (246/300) enh_K8_threads_p0.5_r5: Part2_Case2_Enhanced server [0.5 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:52:28] (246/300) enh_K8_threads_p0.5_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=64, check [A:OK B:OK] (ETA 0h07m40s)
+[20:52:29] (247/300) enh_K8_threads_p0.7_w1_warmup: Part2_Case2_Enhanced server [0.7 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:52:35] (247/300) enh_K8_threads_p0.7_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=97, check [A:OK B:OK] (ETA 0h07m31s)
+[20:52:36] (248/300) enh_K8_threads_p0.7_r1: Part2_Case2_Enhanced server [0.7 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:52:43] (248/300) enh_K8_threads_p0.7_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=131, check [A:OK B:OK] (ETA 0h07m22s)
+[20:52:44] (249/300) enh_K8_threads_p0.7_r2: Part2_Case2_Enhanced server [0.7 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:52:50] (249/300) enh_K8_threads_p0.7_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=125, check [A:OK B:OK] (ETA 0h07m14s)
+[20:52:51] (250/300) enh_K8_threads_p0.7_r3: Part2_Case2_Enhanced server [0.7 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:52:58] (250/300) enh_K8_threads_p0.7_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=117, check [A:OK B:OK] (ETA 0h07m05s)
+[20:52:59] (251/300) enh_K8_threads_p0.7_r4: Part2_Case2_Enhanced server [0.7 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:53:05] (251/300) enh_K8_threads_p0.7_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=90, check [A:OK B:OK] (ETA 0h06m56s)
+[20:53:06] (252/300) enh_K8_threads_p0.7_r5: Part2_Case2_Enhanced server [0.7 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:53:13] (252/300) enh_K8_threads_p0.7_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=111, check [A:OK B:OK] (ETA 0h06m48s)
+[20:53:14] (253/300) enh_K8_threads_p0.9_w1_warmup: Part2_Case2_Enhanced server [0.9 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:53:20] (253/300) enh_K8_threads_p0.9_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=275, check [A:OK B:OK] (ETA 0h06m39s)
+[20:53:21] (254/300) enh_K8_threads_p0.9_r1: Part2_Case2_Enhanced server [0.9 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:53:28] (254/300) enh_K8_threads_p0.9_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=364, check [A:OK B:OK] (ETA 0h06m30s)
+[20:53:29] (255/300) enh_K8_threads_p0.9_r2: Part2_Case2_Enhanced server [0.9 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:53:35] (255/300) enh_K8_threads_p0.9_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=353, check [A:OK B:OK] (ETA 0h06m22s)
+[20:53:36] (256/300) enh_K8_threads_p0.9_r3: Part2_Case2_Enhanced server [0.9 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:53:43] (256/300) enh_K8_threads_p0.9_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.512 s, server rc=0 rows=357, check [A:OK B:OK] (ETA 0h06m13s)
+[20:53:44] (257/300) enh_K8_threads_p0.9_r4: Part2_Case2_Enhanced server [0.9 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:53:50] (257/300) enh_K8_threads_p0.9_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.516 s, server rc=0 rows=271, check [A:OK B:OK] (ETA 0h06m04s)
+[20:53:51] (258/300) enh_K8_threads_p0.9_r5: Part2_Case2_Enhanced server [0.9 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:53:58] (258/300) enh_K8_threads_p0.9_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.514 s, server rc=0 rows=279, check [A:OK B:OK] (ETA 0h05m56s)
+[20:53:59] (259/300) enh_K4_poll_p0_w1_warmup: Part2_Case2_Enhanced server [0 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:54:05] (259/300) enh_K4_poll_p0_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.517 s, server rc=0 rows=20, check [A:OK B:OK] (ETA 0h05m47s)
+[20:54:06] (260/300) enh_K4_poll_p0_r1: Part2_Case2_Enhanced server [0 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:54:13] (260/300) enh_K4_poll_p0_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.518 s, server rc=0 rows=20, check [A:OK B:OK] (ETA 0h05m38s)
+[20:54:14] (261/300) enh_K4_poll_p0_r2: Part2_Case2_Enhanced server [0 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:54:20] (261/300) enh_K4_poll_p0_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.519 s, server rc=0 rows=20, check [A:OK B:OK] (ETA 0h05m30s)
+[20:54:21] (262/300) enh_K4_poll_p0_r3: Part2_Case2_Enhanced server [0 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:54:28] (262/300) enh_K4_poll_p0_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.517 s, server rc=0 rows=20, check [A:OK B:OK] (ETA 0h05m21s)
+[20:54:29] (263/300) enh_K4_poll_p0_r4: Part2_Case2_Enhanced server [0 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:54:35] (263/300) enh_K4_poll_p0_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.514 s, server rc=0 rows=20, check [A:OK B:OK] (ETA 0h05m13s)
+[20:54:36] (264/300) enh_K4_poll_p0_r5: Part2_Case2_Enhanced server [0 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:54:43] (264/300) enh_K4_poll_p0_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.515 s, server rc=0 rows=20, check [A:OK B:OK] (ETA 0h05m04s)
+[20:54:44] (265/300) enh_K4_poll_p0.1_w1_warmup: Part2_Case2_Enhanced server [0.1 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:54:50] (265/300) enh_K4_poll_p0.1_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.511 s, server rc=0 rows=21, check [A:OK B:OK] (ETA 0h04m55s)
+[20:54:52] (266/300) enh_K4_poll_p0.1_r1: Part2_Case2_Enhanced server [0.1 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:54:58] (266/300) enh_K4_poll_p0.1_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=22, check [A:OK B:OK] (ETA 0h04m47s)
+[20:54:59] (267/300) enh_K4_poll_p0.1_r2: Part2_Case2_Enhanced server [0.1 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:55:06] (267/300) enh_K4_poll_p0.1_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=21, check [A:OK B:OK] (ETA 0h04m38s)
+[20:55:07] (268/300) enh_K4_poll_p0.1_r3: Part2_Case2_Enhanced server [0.1 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:55:13] (268/300) enh_K4_poll_p0.1_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=21, check [A:OK B:OK] (ETA 0h04m30s)
+[20:55:14] (269/300) enh_K4_poll_p0.1_r4: Part2_Case2_Enhanced server [0.1 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:55:21] (269/300) enh_K4_poll_p0.1_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=21, check [A:OK B:OK] (ETA 0h04m21s)
+[20:55:22] (270/300) enh_K4_poll_p0.1_r5: Part2_Case2_Enhanced server [0.1 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:55:28] (270/300) enh_K4_poll_p0.1_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=21, check [A:OK B:OK] (ETA 0h04m13s)
+[20:55:29] (271/300) enh_K4_poll_p0.2_w1_warmup: Part2_Case2_Enhanced server [0.2 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:55:36] (271/300) enh_K4_poll_p0.2_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.511 s, server rc=0 rows=21, check [A:OK B:OK] (ETA 0h04m04s)
+[20:55:37] (272/300) enh_K4_poll_p0.2_r1: Part2_Case2_Enhanced server [0.2 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:55:43] (272/300) enh_K4_poll_p0.2_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=23, check [A:OK B:OK] (ETA 0h03m56s)
+[20:55:44] (273/300) enh_K4_poll_p0.2_r2: Part2_Case2_Enhanced server [0.2 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:55:51] (273/300) enh_K4_poll_p0.2_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=23, check [A:OK B:OK] (ETA 0h03m47s)
+[20:55:52] (274/300) enh_K4_poll_p0.2_r3: Part2_Case2_Enhanced server [0.2 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:55:58] (274/300) enh_K4_poll_p0.2_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=28, check [A:OK B:OK] (ETA 0h03m38s)
+[20:55:59] (275/300) enh_K4_poll_p0.2_r4: Part2_Case2_Enhanced server [0.2 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:56:06] (275/300) enh_K4_poll_p0.2_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=26, check [A:OK B:OK] (ETA 0h03m30s)
+[20:56:07] (276/300) enh_K4_poll_p0.2_r5: Part2_Case2_Enhanced server [0.2 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:56:13] (276/300) enh_K4_poll_p0.2_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.511 s, server rc=0 rows=22, check [A:OK B:OK] (ETA 0h03m21s)
+[20:56:14] (277/300) enh_K4_poll_p0.3_w1_warmup: Part2_Case2_Enhanced server [0.3 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:56:21] (277/300) enh_K4_poll_p0.3_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=24, check [A:OK B:OK] (ETA 0h03m13s)
+[20:56:22] (278/300) enh_K4_poll_p0.3_r1: Part2_Case2_Enhanced server [0.3 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:56:28] (278/300) enh_K4_poll_p0.3_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=31, check [A:OK B:OK] (ETA 0h03m05s)
+[20:56:29] (279/300) enh_K4_poll_p0.3_r2: Part2_Case2_Enhanced server [0.3 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:56:36] (279/300) enh_K4_poll_p0.3_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=25, check [A:OK B:OK] (ETA 0h02m56s)
+[20:56:37] (280/300) enh_K4_poll_p0.3_r3: Part2_Case2_Enhanced server [0.3 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:56:43] (280/300) enh_K4_poll_p0.3_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=33, check [A:OK B:OK] (ETA 0h02m48s)
+[20:56:44] (281/300) enh_K4_poll_p0.3_r4: Part2_Case2_Enhanced server [0.3 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:56:51] (281/300) enh_K4_poll_p0.3_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=27, check [A:OK B:OK] (ETA 0h02m39s)
+[20:56:52] (282/300) enh_K4_poll_p0.3_r5: Part2_Case2_Enhanced server [0.3 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:56:58] (282/300) enh_K4_poll_p0.3_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.511 s, server rc=0 rows=24, check [A:OK B:OK] (ETA 0h02m31s)
+[20:56:59] (283/300) enh_K4_poll_p0.5_w1_warmup: Part2_Case2_Enhanced server [0.5 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:57:06] (283/300) enh_K4_poll_p0.5_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=36, check [A:OK B:OK] (ETA 0h02m22s)
+[20:57:07] (284/300) enh_K4_poll_p0.5_r1: Part2_Case2_Enhanced server [0.5 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:57:13] (284/300) enh_K4_poll_p0.5_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=40, check [A:OK B:OK] (ETA 0h02m14s)
+[20:57:14] (285/300) enh_K4_poll_p0.5_r2: Part2_Case2_Enhanced server [0.5 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:57:21] (285/300) enh_K4_poll_p0.5_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.507 s, server rc=0 rows=40, check [A:OK B:OK] (ETA 0h02m05s)
+[20:57:22] (286/300) enh_K4_poll_p0.5_r3: Part2_Case2_Enhanced server [0.5 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:57:28] (286/300) enh_K4_poll_p0.5_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.511 s, server rc=0 rows=41, check [A:OK B:OK] (ETA 0h01m57s)
+[20:57:29] (287/300) enh_K4_poll_p0.5_r4: Part2_Case2_Enhanced server [0.5 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:57:36] (287/300) enh_K4_poll_p0.5_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=34, check [A:OK B:OK] (ETA 0h01m48s)
+[20:57:37] (288/300) enh_K4_poll_p0.5_r5: Part2_Case2_Enhanced server [0.5 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:57:43] (288/300) enh_K4_poll_p0.5_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=34, check [A:OK B:OK] (ETA 0h01m40s)
+[20:57:44] (289/300) enh_K4_poll_p0.7_w1_warmup: Part2_Case2_Enhanced server [0.7 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:57:51] (289/300) enh_K4_poll_p0.7_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=53, check [A:OK B:OK] (ETA 0h01m32s)
+[20:57:52] (290/300) enh_K4_poll_p0.7_r1: Part2_Case2_Enhanced server [0.7 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:57:59] (290/300) enh_K4_poll_p0.7_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=68, check [A:OK B:OK] (ETA 0h01m23s)
+[20:58:00] (291/300) enh_K4_poll_p0.7_r2: Part2_Case2_Enhanced server [0.7 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:58:06] (291/300) enh_K4_poll_p0.7_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=70, check [A:OK B:OK] (ETA 0h01m15s)
+[20:58:07] (292/300) enh_K4_poll_p0.7_r3: Part2_Case2_Enhanced server [0.7 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:58:14] (292/300) enh_K4_poll_p0.7_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.508 s, server rc=0 rows=69, check [A:OK B:OK] (ETA 0h01m06s)
+[20:58:15] (293/300) enh_K4_poll_p0.7_r4: Part2_Case2_Enhanced server [0.7 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:58:21] (293/300) enh_K4_poll_p0.7_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=45, check [A:OK B:OK] (ETA 0h00m58s)
+[20:58:22] (294/300) enh_K4_poll_p0.7_r5: Part2_Case2_Enhanced server [0.7 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:58:29] (294/300) enh_K4_poll_p0.7_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=47, check [A:OK B:OK] (ETA 0h00m50s)
+[20:58:30] (295/300) enh_K4_poll_p0.9_w1_warmup: Part2_Case2_Enhanced server [0.9 1000], 4 client(s) (A=2 B=2), time-out 300s
+[20:58:36] (295/300) enh_K4_poll_p0.9_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=150, check [A:OK B:OK] (ETA 0h00m41s)
+[20:58:37] (296/300) enh_K4_poll_p0.9_r1: Part2_Case2_Enhanced server [0.9 1001], 4 client(s) (A=2 B=2), time-out 300s
+[20:58:44] (296/300) enh_K4_poll_p0.9_r1: OK ok=4 dnf=0 timeout=0 fail=0, 6.509 s, server rc=0 rows=214, check [A:OK B:OK] (ETA 0h00m33s)
+[20:58:45] (297/300) enh_K4_poll_p0.9_r2: Part2_Case2_Enhanced server [0.9 1002], 4 client(s) (A=2 B=2), time-out 300s
+[20:58:51] (297/300) enh_K4_poll_p0.9_r2: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=184, check [A:OK B:OK] (ETA 0h00m25s)
+[20:58:52] (298/300) enh_K4_poll_p0.9_r3: Part2_Case2_Enhanced server [0.9 1003], 4 client(s) (A=2 B=2), time-out 300s
+[20:58:59] (298/300) enh_K4_poll_p0.9_r3: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=187, check [A:OK B:OK] (ETA 0h00m16s)
+[20:59:00] (299/300) enh_K4_poll_p0.9_r4: Part2_Case2_Enhanced server [0.9 1004], 4 client(s) (A=2 B=2), time-out 300s
+[20:59:06] (299/300) enh_K4_poll_p0.9_r4: OK ok=4 dnf=0 timeout=0 fail=0, 6.510 s, server rc=0 rows=130, check [A:OK B:OK] (ETA 0h00m08s)
+[20:59:07] (300/300) enh_K4_poll_p0.9_r5: Part2_Case2_Enhanced server [0.9 1005], 4 client(s) (A=2 B=2), time-out 300s
+[20:59:14] (300/300) enh_K4_poll_p0.9_r5: OK ok=4 dnf=0 timeout=0 fail=0, 6.511 s, server rc=0 rows=150, check [A:OK B:OK] (ETA 0h00m00s)
+[20:59:15] sweep part2 finished. Raw data in /home/bhagy/comp_net/Results/raw/part2

@@ -1,0 +1,17 @@
+run_id,case,ts_ns,event,conn_id,session_id,topic,file_index,offset,chunk_index,conn_data_bytes,detail
+enh_K4_poll_p0.2_r4,enhanced,10377751720552,SESSION_NEW,1,473d6b289d2726ecfe8dffbc65c1ff23,"gatto",-1,0,0,0,"k=4"
+enh_K4_poll_p0.2_r4,enhanced,10377751804487,SESSION_NEW,2,d7a28fe768cd8cdfaf31ab0a80546a73,"gatto",-1,0,0,0,"k=4"
+enh_K4_poll_p0.2_r4,enhanced,10377751988572,SESSION_NEW,3,fca59606d072f5d2043a69af1352b714,"gatto",-1,0,0,0,"k=4"
+enh_K4_poll_p0.2_r4,enhanced,10377752157668,SESSION_NEW,4,ce9d01057bb755bd5f1600952ec0021f,"gatto",-1,0,0,0,"k=4"
+enh_K4_poll_p0.2_r4,enhanced,10377755593169,FAULT,5,fca59606d072f5d2043a69af1352b714,"gatto",0,0,0,4202,"prefix=4202/10715"
+enh_K4_poll_p0.2_r4,enhanced,10377755629747,FAULT,6,fca59606d072f5d2043a69af1352b714,"gatto",1,0,0,5803,"prefix=5803/8885"
+enh_K4_poll_p0.2_r4,enhanced,10377755658772,FAULT,7,fca59606d072f5d2043a69af1352b714,"gatto",2,0,0,2906,"prefix=2906/3671"
+enh_K4_poll_p0.2_r4,enhanced,10377756743984,FAULT,11,d7a28fe768cd8cdfaf31ab0a80546a73,"gatto",2,0,0,2280,"prefix=2280/3671"
+enh_K4_poll_p0.2_r4,enhanced,10377757160912,FAULT,19,ce9d01057bb755bd5f1600952ec0021f,"gatto",2,0,0,2144,"prefix=2144/3671"
+enh_K4_poll_p0.2_r4,enhanced,10377806487642,FAULT,23,fca59606d072f5d2043a69af1352b714,"gatto",53,0,0,9321,"prefix=9321/12068"
+enh_K4_poll_p0.2_r4,enhanced,10382686028565,FETCH_RESUME,10,d7a28fe768cd8cdfaf31ab0a80546a73,"gatto",2,2280,0,37016243,-
+enh_K4_poll_p0.2_r4,enhanced,10382703217321,FETCH_RESUME,17,ce9d01057bb755bd5f1600952ec0021f,"gatto",2,2144,0,37034796,-
+enh_K4_poll_p0.2_r4,enhanced,10382731962325,FETCH_RESUME,26,fca59606d072f5d2043a69af1352b714,"gatto",0,4202,0,36231971,-
+enh_K4_poll_p0.2_r4,enhanced,10382734089165,FETCH_RESUME,26,fca59606d072f5d2043a69af1352b714,"gatto",1,5803,0,36238484,-
+enh_K4_poll_p0.2_r4,enhanced,10382734510259,FETCH_RESUME,26,fca59606d072f5d2043a69af1352b714,"gatto",2,2906,0,36241566,-
+enh_K4_poll_p0.2_r4,enhanced,10382734885337,FETCH_RESUME,26,fca59606d072f5d2043a69af1352b714,"gatto",53,9321,0,36242331,-

@@ -1,0 +1,11 @@
+run_id,case,ts_ns,event,conn_id,session_id,topic,file_index,offset,chunk_index,conn_data_bytes,detail
+enh_K2_threads_p0.3_r5,enhanced,9482496445004,SESSION_NEW,1,ac9ec4c58792b933f88477820b229113,"gatto",-1,0,0,0,"k=2"
+enh_K2_threads_p0.3_r5,enhanced,9482496548149,SESSION_NEW,2,0d5ce82afd7339cc90521d13927a02a8,"gatto",-1,0,0,0,"k=2"
+enh_K2_threads_p0.3_r5,enhanced,9482496844673,SESSION_NEW,3,002e4b63d0d5a1d40e17c059eb17189f,"gatto",-1,0,0,0,"k=2"
+enh_K2_threads_p0.3_r5,enhanced,9482496861972,SESSION_NEW,4,3a28603cd5e37e3bc8a6a02b4f327545,"gatto",-1,0,0,0,"k=2"
+enh_K2_threads_p0.3_r5,enhanced,9482500096863,FAULT,5,ac9ec4c58792b933f88477820b229113,"gatto",0,0,0,4824,"prefix=4824/10715"
+enh_K2_threads_p0.3_r5,enhanced,9482501851330,FAULT,12,002e4b63d0d5a1d40e17c059eb17189f,"gatto",1,0,0,7784,"prefix=7784/8885"
+enh_K2_threads_p0.3_r5,enhanced,9482553109995,FAULT,14,002e4b63d0d5a1d40e17c059eb17189f,"gatto",78,0,0,3807,"prefix=3807/4029"
+enh_K2_threads_p0.3_r5,enhanced,9487547195939,FETCH_RESUME,15,002e4b63d0d5a1d40e17c059eb17189f,"gatto",1,7784,0,74221588,-
+enh_K2_threads_p0.3_r5,enhanced,9487547670168,FETCH_RESUME,15,002e4b63d0d5a1d40e17c059eb17189f,"gatto",78,3807,0,74222689,-
+enh_K2_threads_p0.3_r5,enhanced,9487557838945,FETCH_RESUME,13,ac9ec4c58792b933f88477820b229113,"gatto",0,4824,0,76410163,-

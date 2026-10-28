@@ -1,0 +1,5 @@
+run_id,case,ts_ns,event,conn_id,session_id,topic,file_index,offset,chunk_index,conn_data_bytes,detail
+case1_p0.3_r1,case1,8260974147403,FAULT,1,-,"gatto",1647,1048576,2700,95358966,"prefix=3118/65536"
+case1_p0.3_r1,case1,8263002195816,FAULT,5,-,"gatto",1635,1179648,2276,68113290,"prefix=50787/65536"
+case1_p0.3_r1,case1,8263509497140,FAULT,6,-,"gatto",1549,0,2052,56364369,"prefix=64201/65536"
+case1_p0.3_r1,case1,8263662795124,FAULT,7,-,"gatto",1092,0,1092,11294949,"prefix=11530/15772"

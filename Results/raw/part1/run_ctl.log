@@ -1,0 +1,146 @@
+[20:08:22] sweep part1 started: 72 runs, mode emu
+[20:08:22] (1/72) part1_single_N1_w1_warmup: Part1 server [single], 1 client(s) (A=1 B=0), time-out 70s
+[20:08:24] (1/72) part1_single_N1_w1_warmup: OK ok=1 dnf=0 timeout=0 fail=0, 1.853 s, server rc=0 rows=1, check [A:OK] (ETA 0h03m22s)
+[20:08:25] (2/72) part1_single_N1_r1: Part1 server [single], 1 client(s) (A=1 B=0), time-out 70s
+[20:08:27] (2/72) part1_single_N1_r1: OK ok=1 dnf=0 timeout=0 fail=0, 1.855 s, server rc=0 rows=1, check [A:OK] (ETA 0h03m19s)
+[20:08:28] (3/72) part1_single_N1_r2: Part1 server [single], 1 client(s) (A=1 B=0), time-out 70s
+[20:08:30] (3/72) part1_single_N1_r2: OK ok=1 dnf=0 timeout=0 fail=0, 1.854 s, server rc=0 rows=1, check [A:OK] (ETA 0h03m16s)
+[20:08:31] (4/72) part1_single_N1_r3: Part1 server [single], 1 client(s) (A=1 B=0), time-out 70s
+[20:08:33] (4/72) part1_single_N1_r3: OK ok=1 dnf=0 timeout=0 fail=0, 1.853 s, server rc=0 rows=1, check [A:OK] (ETA 0h03m14s)
+[20:08:34] (5/72) part1_single_N1_r4: Part1 server [single], 1 client(s) (A=1 B=0), time-out 70s
+[20:08:36] (5/72) part1_single_N1_r4: OK ok=1 dnf=0 timeout=0 fail=0, 1.854 s, server rc=0 rows=1, check [A:OK] (ETA 0h03m11s)
+[20:08:37] (6/72) part1_single_N1_r5: Part1 server [single], 1 client(s) (A=1 B=0), time-out 70s
+[20:08:39] (6/72) part1_single_N1_r5: OK ok=1 dnf=0 timeout=0 fail=0, 1.853 s, server rc=0 rows=1, check [A:OK] (ETA 0h03m08s)
+[20:08:40] (7/72) part1_single_N2_w1_warmup: Part1 server [single], 2 client(s) (A=1 B=1), time-out 80s
+[20:08:42] (7/72) part1_single_N2_w1_warmup: OK ok=2 dnf=0 timeout=0 fail=0, 2.262 s, server rc=0 rows=2, check [A:OK B:OK] (ETA 0h03m09s)
+[20:08:43] (8/72) part1_single_N2_r1: Part1 server [single], 2 client(s) (A=1 B=1), time-out 80s
+[20:08:45] (8/72) part1_single_N2_r1: OK ok=2 dnf=0 timeout=0 fail=0, 2.259 s, server rc=0 rows=2, check [A:OK B:OK] (ETA 0h03m09s)
+[20:08:46] (9/72) part1_single_N2_r2: Part1 server [single], 2 client(s) (A=1 B=1), time-out 80s
+[20:08:48] (9/72) part1_single_N2_r2: OK ok=2 dnf=0 timeout=0 fail=0, 2.261 s, server rc=0 rows=2, check [A:OK B:OK] (ETA 0h03m08s)
+[20:08:49] (10/72) part1_single_N2_r3: Part1 server [single], 2 client(s) (A=1 B=1), time-out 80s
+[20:08:52] (10/72) part1_single_N2_r3: OK ok=2 dnf=0 timeout=0 fail=0, 2.262 s, server rc=0 rows=2, check [A:OK B:OK] (ETA 0h03m06s)
+[20:08:53] (11/72) part1_single_N2_r4: Part1 server [single], 2 client(s) (A=1 B=1), time-out 80s
+[20:08:55] (11/72) part1_single_N2_r4: OK ok=2 dnf=0 timeout=0 fail=0, 2.262 s, server rc=0 rows=2, check [A:OK B:OK] (ETA 0h03m05s)
+[20:08:56] (12/72) part1_single_N2_r5: Part1 server [single], 2 client(s) (A=1 B=1), time-out 80s
+[20:08:58] (12/72) part1_single_N2_r5: OK ok=2 dnf=0 timeout=0 fail=0, 2.260 s, server rc=0 rows=2, check [A:OK B:OK] (ETA 0h03m03s)
+[20:08:59] (13/72) part1_single_N4_w1_warmup: Part1 server [single], 4 client(s) (A=2 B=2), time-out 100s
+[20:09:02] (13/72) part1_single_N4_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 3.273 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h03m05s)
+[20:09:03] (14/72) part1_single_N4_r1: Part1 server [single], 4 client(s) (A=2 B=2), time-out 100s
+[20:09:07] (14/72) part1_single_N4_r1: OK ok=4 dnf=0 timeout=0 fail=0, 3.271 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h03m07s)
+[20:09:08] (15/72) part1_single_N4_r2: Part1 server [single], 4 client(s) (A=2 B=2), time-out 100s
+[20:09:11] (15/72) part1_single_N4_r2: OK ok=4 dnf=0 timeout=0 fail=0, 3.273 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h03m08s)
+[20:09:12] (16/72) part1_single_N4_r3: Part1 server [single], 4 client(s) (A=2 B=2), time-out 100s
+[20:09:15] (16/72) part1_single_N4_r3: OK ok=4 dnf=0 timeout=0 fail=0, 3.271 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h03m08s)
+[20:09:16] (17/72) part1_single_N4_r4: Part1 server [single], 4 client(s) (A=2 B=2), time-out 100s
+[20:09:20] (17/72) part1_single_N4_r4: OK ok=4 dnf=0 timeout=0 fail=0, 3.275 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h03m07s)
+[20:09:21] (18/72) part1_single_N4_r5: Part1 server [single], 4 client(s) (A=2 B=2), time-out 100s
+[20:09:24] (18/72) part1_single_N4_r5: OK ok=4 dnf=0 timeout=0 fail=0, 3.273 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h03m06s)
+[20:09:25] (19/72) part1_single_N8_w1_warmup: Part1 server [single], 8 client(s) (A=4 B=4), time-out 140s
+[20:09:30] (19/72) part1_single_N8_w1_warmup: OK ok=8 dnf=0 timeout=0 fail=0, 5.295 s, server rc=0 rows=8, check [A:OK B:OK] (ETA 0h03m11s)
+[20:09:31] (20/72) part1_single_N8_r1: Part1 server [single], 8 client(s) (A=4 B=4), time-out 140s
+[20:09:36] (20/72) part1_single_N8_r1: OK ok=8 dnf=0 timeout=0 fail=0, 5.297 s, server rc=0 rows=8, check [A:OK B:OK] (ETA 0h03m14s)
+[20:09:37] (21/72) part1_single_N8_r2: Part1 server [single], 8 client(s) (A=4 B=4), time-out 140s
+[20:09:43] (21/72) part1_single_N8_r2: OK ok=8 dnf=0 timeout=0 fail=0, 5.295 s, server rc=0 rows=8, check [A:OK B:OK] (ETA 0h03m17s)
+[20:09:44] (22/72) part1_single_N8_r3: Part1 server [single], 8 client(s) (A=4 B=4), time-out 140s
+[20:09:49] (22/72) part1_single_N8_r3: OK ok=8 dnf=0 timeout=0 fail=0, 5.295 s, server rc=0 rows=8, check [A:OK B:OK] (ETA 0h03m18s)
+[20:09:50] (23/72) part1_single_N8_r4: Part1 server [single], 8 client(s) (A=4 B=4), time-out 140s
+[20:09:55] (23/72) part1_single_N8_r4: OK ok=8 dnf=0 timeout=0 fail=0, 5.295 s, server rc=0 rows=8, check [A:OK B:OK] (ETA 0h03m19s)
+[20:09:56] (24/72) part1_single_N8_r5: Part1 server [single], 8 client(s) (A=4 B=4), time-out 140s
+[20:10:02] (24/72) part1_single_N8_r5: OK ok=8 dnf=0 timeout=0 fail=0, 5.295 s, server rc=0 rows=8, check [A:OK B:OK] (ETA 0h03m20s)
+[20:10:03] (25/72) part1_single_N16_w1_warmup: Part1 server [single], 16 client(s) (A=8 B=8), time-out 220s
+[20:10:12] (25/72) part1_single_N16_w1_warmup: OK ok=16 dnf=0 timeout=0 fail=0, 9.334 s, server rc=0 rows=16, check [A:OK B:OK] (ETA 0h03m27s)
+[20:10:13] (26/72) part1_single_N16_r1: Part1 server [single], 16 client(s) (A=8 B=8), time-out 220s
+[20:10:22] (26/72) part1_single_N16_r1: OK ok=16 dnf=0 timeout=0 fail=0, 9.341 s, server rc=0 rows=16, check [A:OK B:OK] (ETA 0h03m33s)
+[20:10:23] (27/72) part1_single_N16_r2: Part1 server [single], 16 client(s) (A=8 B=8), time-out 220s
+[20:10:33] (27/72) part1_single_N16_r2: OK ok=16 dnf=0 timeout=0 fail=0, 9.341 s, server rc=0 rows=16, check [A:OK B:OK] (ETA 0h03m38s)
+[20:10:34] (28/72) part1_single_N16_r3: Part1 server [single], 16 client(s) (A=8 B=8), time-out 220s
+[20:10:43] (28/72) part1_single_N16_r3: OK ok=16 dnf=0 timeout=0 fail=0, 9.340 s, server rc=0 rows=16, check [A:OK B:OK] (ETA 0h03m42s)
+[20:10:44] (29/72) part1_single_N16_r4: Part1 server [single], 16 client(s) (A=8 B=8), time-out 220s
+[20:10:53] (29/72) part1_single_N16_r4: OK ok=16 dnf=0 timeout=0 fail=0, 9.341 s, server rc=0 rows=16, check [A:OK B:OK] (ETA 0h03m45s)
+[20:10:54] (30/72) part1_single_N16_r5: Part1 server [single], 16 client(s) (A=8 B=8), time-out 220s
+[20:11:04] (30/72) part1_single_N16_r5: OK ok=16 dnf=0 timeout=0 fail=0, 9.339 s, server rc=0 rows=16, check [A:OK B:OK] (ETA 0h03m46s)
+[20:11:05] (31/72) part1_single_N32_w1_warmup: Part1 server [single], 32 client(s) (A=16 B=16), time-out 380s
+[20:11:22] (31/72) part1_single_N32_w1_warmup: OK ok=32 dnf=0 timeout=0 fail=0, 17.225 s, server rc=0 rows=32, check [A:OK B:OK] (ETA 0h03m58s)
+[20:11:23] (32/72) part1_single_N32_r1: Part1 server [single], 32 client(s) (A=16 B=16), time-out 380s
+[20:11:40] (32/72) part1_single_N32_r1: OK ok=32 dnf=0 timeout=0 fail=0, 17.226 s, server rc=0 rows=32, check [A:OK B:OK] (ETA 0h04m08s)
+[20:11:41] (33/72) part1_single_N32_r2: Part1 server [single], 32 client(s) (A=16 B=16), time-out 380s
+[20:11:59] (33/72) part1_single_N32_r2: OK ok=32 dnf=0 timeout=0 fail=0, 17.223 s, server rc=0 rows=32, check [A:OK B:OK] (ETA 0h04m16s)
+[20:12:00] (34/72) part1_single_N32_r3: Part1 server [single], 32 client(s) (A=16 B=16), time-out 380s
+[20:12:17] (34/72) part1_single_N32_r3: OK ok=32 dnf=0 timeout=0 fail=0, 17.218 s, server rc=0 rows=32, check [A:OK B:OK] (ETA 0h04m22s)
+[20:12:18] (35/72) part1_single_N32_r4: Part1 server [single], 32 client(s) (A=16 B=16), time-out 380s
+[20:12:35] (35/72) part1_single_N32_r4: OK ok=32 dnf=0 timeout=0 fail=0, 17.225 s, server rc=0 rows=32, check [A:OK B:OK] (ETA 0h04m27s)
+[20:12:36] (36/72) part1_single_N32_r5: Part1 server [single], 32 client(s) (A=16 B=16), time-out 380s
+[20:12:53] (36/72) part1_single_N32_r5: OK ok=32 dnf=0 timeout=0 fail=0, 17.223 s, server rc=0 rows=32, check [A:OK B:OK] (ETA 0h04m31s)
+[20:12:54] (37/72) part1_multi_N1_w1_warmup: Part1 server [multi], 1 client(s) (A=1 B=0), time-out 70s
+[20:12:56] (37/72) part1_multi_N1_w1_warmup: OK ok=1 dnf=0 timeout=0 fail=0, 1.855 s, server rc=0 rows=1, check [A:OK] (ETA 0h04m19s)
+[20:12:57] (38/72) part1_multi_N1_r1: Part1 server [multi], 1 client(s) (A=1 B=0), time-out 70s
+[20:12:59] (38/72) part1_multi_N1_r1: OK ok=1 dnf=0 timeout=0 fail=0, 1.855 s, server rc=0 rows=1, check [A:OK] (ETA 0h04m07s)
+[20:13:00] (39/72) part1_multi_N1_r2: Part1 server [multi], 1 client(s) (A=1 B=0), time-out 70s
+[20:13:02] (39/72) part1_multi_N1_r2: OK ok=1 dnf=0 timeout=0 fail=0, 1.856 s, server rc=0 rows=1, check [A:OK] (ETA 0h03m56s)
+[20:13:03] (40/72) part1_multi_N1_r3: Part1 server [multi], 1 client(s) (A=1 B=0), time-out 70s
+[20:13:05] (40/72) part1_multi_N1_r3: OK ok=1 dnf=0 timeout=0 fail=0, 1.855 s, server rc=0 rows=1, check [A:OK] (ETA 0h03m46s)
+[20:13:06] (41/72) part1_multi_N1_r4: Part1 server [multi], 1 client(s) (A=1 B=0), time-out 70s
+[20:13:08] (41/72) part1_multi_N1_r4: OK ok=1 dnf=0 timeout=0 fail=0, 1.856 s, server rc=0 rows=1, check [A:OK] (ETA 0h03m36s)
+[20:13:09] (42/72) part1_multi_N1_r5: Part1 server [multi], 1 client(s) (A=1 B=0), time-out 70s
+[20:13:10] (42/72) part1_multi_N1_r5: OK ok=1 dnf=0 timeout=0 fail=0, 1.856 s, server rc=0 rows=1, check [A:OK] (ETA 0h03m26s)
+[20:13:11] (43/72) part1_multi_N2_w1_warmup: Part1 server [multi], 2 client(s) (A=1 B=1), time-out 80s
+[20:13:14] (43/72) part1_multi_N2_w1_warmup: OK ok=2 dnf=0 timeout=0 fail=0, 2.261 s, server rc=0 rows=2, check [A:OK B:OK] (ETA 0h03m16s)
+[20:13:15] (44/72) part1_multi_N2_r1: Part1 server [multi], 2 client(s) (A=1 B=1), time-out 80s
+[20:13:17] (44/72) part1_multi_N2_r1: OK ok=2 dnf=0 timeout=0 fail=0, 2.259 s, server rc=0 rows=2, check [A:OK B:OK] (ETA 0h03m07s)
+[20:13:18] (45/72) part1_multi_N2_r2: Part1 server [multi], 2 client(s) (A=1 B=1), time-out 80s
+[20:13:20] (45/72) part1_multi_N2_r2: OK ok=2 dnf=0 timeout=0 fail=0, 2.262 s, server rc=0 rows=2, check [A:OK B:OK] (ETA 0h02m59s)
+[20:13:21] (46/72) part1_multi_N2_r3: Part1 server [multi], 2 client(s) (A=1 B=1), time-out 80s
+[20:13:24] (46/72) part1_multi_N2_r3: OK ok=2 dnf=0 timeout=0 fail=0, 2.260 s, server rc=0 rows=2, check [A:OK B:OK] (ETA 0h02m50s)
+[20:13:25] (47/72) part1_multi_N2_r4: Part1 server [multi], 2 client(s) (A=1 B=1), time-out 80s
+[20:13:27] (47/72) part1_multi_N2_r4: OK ok=2 dnf=0 timeout=0 fail=0, 2.262 s, server rc=0 rows=2, check [A:OK B:OK] (ETA 0h02m42s)
+[20:13:28] (48/72) part1_multi_N2_r5: Part1 server [multi], 2 client(s) (A=1 B=1), time-out 80s
+[20:13:30] (48/72) part1_multi_N2_r5: OK ok=2 dnf=0 timeout=0 fail=0, 2.261 s, server rc=0 rows=2, check [A:OK B:OK] (ETA 0h02m34s)
+[20:13:31] (49/72) part1_multi_N4_w1_warmup: Part1 server [multi], 4 client(s) (A=2 B=2), time-out 100s
+[20:13:34] (49/72) part1_multi_N4_w1_warmup: OK ok=4 dnf=0 timeout=0 fail=0, 3.272 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h02m26s)
+[20:13:35] (50/72) part1_multi_N4_r1: Part1 server [multi], 4 client(s) (A=2 B=2), time-out 100s
+[20:13:39] (50/72) part1_multi_N4_r1: OK ok=4 dnf=0 timeout=0 fail=0, 3.270 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h02m19s)
+[20:13:40] (51/72) part1_multi_N4_r2: Part1 server [multi], 4 client(s) (A=2 B=2), time-out 100s
+[20:13:43] (51/72) part1_multi_N4_r2: OK ok=4 dnf=0 timeout=0 fail=0, 3.270 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h02m12s)
+[20:13:44] (52/72) part1_multi_N4_r3: Part1 server [multi], 4 client(s) (A=2 B=2), time-out 100s
+[20:13:47] (52/72) part1_multi_N4_r3: OK ok=4 dnf=0 timeout=0 fail=0, 3.271 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h02m05s)
+[20:13:48] (53/72) part1_multi_N4_r4: Part1 server [multi], 4 client(s) (A=2 B=2), time-out 100s
+[20:13:51] (53/72) part1_multi_N4_r4: OK ok=4 dnf=0 timeout=0 fail=0, 3.272 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h01m58s)
+[20:13:52] (54/72) part1_multi_N4_r5: Part1 server [multi], 4 client(s) (A=2 B=2), time-out 100s
+[20:13:56] (54/72) part1_multi_N4_r5: OK ok=4 dnf=0 timeout=0 fail=0, 3.270 s, server rc=0 rows=4, check [A:OK B:OK] (ETA 0h01m51s)
+[20:13:57] (55/72) part1_multi_N8_w1_warmup: Part1 server [multi], 8 client(s) (A=4 B=4), time-out 140s
+[20:14:02] (55/72) part1_multi_N8_w1_warmup: OK ok=8 dnf=0 timeout=0 fail=0, 5.291 s, server rc=0 rows=8, check [A:OK B:OK] (ETA 0h01m45s)
+[20:14:03] (56/72) part1_multi_N8_r1: Part1 server [multi], 8 client(s) (A=4 B=4), time-out 140s
+[20:14:08] (56/72) part1_multi_N8_r1: OK ok=8 dnf=0 timeout=0 fail=0, 5.293 s, server rc=0 rows=8, check [A:OK B:OK] (ETA 0h01m38s)
+[20:14:09] (57/72) part1_multi_N8_r2: Part1 server [multi], 8 client(s) (A=4 B=4), time-out 140s
+[20:14:15] (57/72) part1_multi_N8_r2: OK ok=8 dnf=0 timeout=0 fail=0, 5.290 s, server rc=0 rows=8, check [A:OK B:OK] (ETA 0h01m32s)
+[20:14:16] (58/72) part1_multi_N8_r3: Part1 server [multi], 8 client(s) (A=4 B=4), time-out 140s
+[20:14:21] (58/72) part1_multi_N8_r3: OK ok=8 dnf=0 timeout=0 fail=0, 5.291 s, server rc=0 rows=8, check [A:OK B:OK] (ETA 0h01m26s)
+[20:14:22] (59/72) part1_multi_N8_r4: Part1 server [multi], 8 client(s) (A=4 B=4), time-out 140s
+[20:14:27] (59/72) part1_multi_N8_r4: OK ok=8 dnf=0 timeout=0 fail=0, 5.295 s, server rc=0 rows=8, check [A:OK B:OK] (ETA 0h01m20s)
+[20:14:28] (60/72) part1_multi_N8_r5: Part1 server [multi], 8 client(s) (A=4 B=4), time-out 140s
+[20:14:34] (60/72) part1_multi_N8_r5: OK ok=8 dnf=0 timeout=0 fail=0, 5.296 s, server rc=0 rows=8, check [A:OK B:OK] (ETA 0h01m14s)
+[20:14:35] (61/72) part1_multi_N16_w1_warmup: Part1 server [multi], 16 client(s) (A=8 B=8), time-out 220s
+[20:14:44] (61/72) part1_multi_N16_w1_warmup: OK ok=16 dnf=0 timeout=0 fail=0, 9.540 s, server rc=0 rows=16, check [A:OK B:OK] (ETA 0h01m08s)
+[20:14:45] (62/72) part1_multi_N16_r1: Part1 server [multi], 16 client(s) (A=8 B=8), time-out 220s
+[20:14:54] (62/72) part1_multi_N16_r1: OK ok=16 dnf=0 timeout=0 fail=0, 9.338 s, server rc=0 rows=16, check [A:OK B:OK] (ETA 0h01m03s)
+[20:14:55] (63/72) part1_multi_N16_r2: Part1 server [multi], 16 client(s) (A=8 B=8), time-out 220s
+[20:15:05] (63/72) part1_multi_N16_r2: OK ok=16 dnf=0 timeout=0 fail=0, 9.336 s, server rc=0 rows=16, check [A:OK B:OK] (ETA 0h00m57s)
+[20:15:06] (64/72) part1_multi_N16_r3: Part1 server [multi], 16 client(s) (A=8 B=8), time-out 220s
+[20:15:15] (64/72) part1_multi_N16_r3: OK ok=16 dnf=0 timeout=0 fail=0, 9.338 s, server rc=0 rows=16, check [A:OK B:OK] (ETA 0h00m51s)
+[20:15:16] (65/72) part1_multi_N16_r4: Part1 server [multi], 16 client(s) (A=8 B=8), time-out 220s
+[20:15:26] (65/72) part1_multi_N16_r4: OK ok=16 dnf=0 timeout=0 fail=0, 9.338 s, server rc=0 rows=16, check [A:OK B:OK] (ETA 0h00m45s)
+[20:15:27] (66/72) part1_multi_N16_r5: Part1 server [multi], 16 client(s) (A=8 B=8), time-out 220s
+[20:15:36] (66/72) part1_multi_N16_r5: OK ok=16 dnf=0 timeout=0 fail=0, 9.342 s, server rc=0 rows=16, check [A:OK B:OK] (ETA 0h00m39s)
+[20:15:37] (67/72) part1_multi_N32_w1_warmup: Part1 server [multi], 32 client(s) (A=16 B=16), time-out 380s
+[20:15:54] (67/72) part1_multi_N32_w1_warmup: OK ok=32 dnf=0 timeout=0 fail=0, 17.226 s, server rc=0 rows=32, check [A:OK B:OK] (ETA 0h00m33s)
+[20:15:55] (68/72) part1_multi_N32_r1: Part1 server [multi], 32 client(s) (A=16 B=16), time-out 380s
+[20:16:12] (68/72) part1_multi_N32_r1: OK ok=32 dnf=0 timeout=0 fail=0, 17.218 s, server rc=0 rows=32, check [A:OK B:OK] (ETA 0h00m27s)
+[20:16:13] (69/72) part1_multi_N32_r2: Part1 server [multi], 32 client(s) (A=16 B=16), time-out 380s
+[20:16:31] (69/72) part1_multi_N32_r2: OK ok=32 dnf=0 timeout=0 fail=0, 17.215 s, server rc=0 rows=32, check [A:OK B:OK] (ETA 0h00m21s)
+[20:16:32] (70/72) part1_multi_N32_r3: Part1 server [multi], 32 client(s) (A=16 B=16), time-out 380s
+[20:16:49] (70/72) part1_multi_N32_r3: OK ok=32 dnf=0 timeout=0 fail=0, 17.222 s, server rc=0 rows=32, check [A:OK B:OK] (ETA 0h00m14s)
+[20:16:50] (71/72) part1_multi_N32_r4: Part1 server [multi], 32 client(s) (A=16 B=16), time-out 380s
+[20:17:07] (71/72) part1_multi_N32_r4: OK ok=32 dnf=0 timeout=0 fail=0, 17.218 s, server rc=0 rows=32, check [A:OK B:OK] (ETA 0h00m07s)
+[20:17:08] (72/72) part1_multi_N32_r5: Part1 server [multi], 32 client(s) (A=16 B=16), time-out 380s
+[20:17:25] (72/72) part1_multi_N32_r5: OK ok=32 dnf=0 timeout=0 fail=0, 17.221 s, server rc=0 rows=32, check [A:OK B:OK] (ETA 0h00m00s)
+[20:17:26] sweep part1 finished. Raw data in /home/bhagy/comp_net/Results/raw/part1

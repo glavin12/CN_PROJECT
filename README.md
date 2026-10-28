@@ -304,7 +304,7 @@ reasons, are listed in `docs/DEVIATIONS.md` and are repeated in the Design secti
 `Results/` holds the raw CSV logs of every measured run (`Results/raw/`), the summary tables
 computed from them and the graphs (`Part1_*`, `Part2_Case1_*`, `Part2_Case2_*`,
 `Part2_Case2_Enhanced_*`, `Part2_Comparison_*`: `*_throughput.png` and `*_overhead.png`). The
-experiment setup (three PCs, sweeps, repetitions) and the analysis are in the report.
+experiment setup (testbed, sweeps, repetitions) and the analysis are in the report.
 
 ## Deviations from the design document
 

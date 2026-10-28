@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Final Report, Group 006 + 043</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm 18mm 16mm; }
+  body { font-family: "Liberation Serif", "Times New Roman", serif; font-size: 10.5pt; line-height: 1.35; color: #000; }
+  h1 { font-size: 20pt; margin: 0 0 4pt 0; }
+  h2 { font-size: 14pt; margin: 16pt 0 6pt 0; border-bottom: 1px solid #444; }
+  h3 { font-size: 12pt; margin: 12pt 0 4pt 0; }
+  h4 { font-size: 10.5pt; margin: 8pt 0 2pt 0; }
+  p { margin: 3pt 0 6pt 0; text-align: justify; }
+  table { border-collapse: collapse; margin: 6pt 0 8pt 0; width: 100%; }
+  th, td { border: 1px solid #555; padding: 2pt 4pt; font-size: 9pt; vertical-align: top; text-align: left; }
+  th { background: #e6e6e6; }
+  td.n, th.n { text-align: right; }
+  code, .mono { font-family: "Liberation Mono", "DejaVu Sans Mono", monospace; font-size: 8.8pt; }
+  pre { font-family: "Liberation Mono", "DejaVu Sans Mono", monospace; font-size: 8.3pt; border: 1px solid #999; padding: 4pt; margin: 4pt 0 8pt 0; }
+  .fig { text-align: center; margin: 6pt 0 10pt 0; }
+  .fig img { width: 16cm; }
+  .cap { font-size: 9pt; font-style: italic; text-align: center; }
+  .title { text-align: center; margin-top: 30mm; }
+  .sub { font-size: 12pt; }
+  .pb { page-break-before: always; }
+  ul { margin: 2pt 0 6pt 0; }
+  li { margin: 1pt 0; }
+</style>
+</head>
+<body>
+
+<div class="title">
+<h1>Fault-Tolerant Topic-Based File Distribution Service</h1>
+<p class="sub" style="text-align:center">IT305 Computer Networks Lab: Socket Programming Project<br>
+Final Report, Lab Group 006 + 043</p>
+</div>
+
+<table align="center" border="1" cellspacing="0" cellpadding="3" style="width:70%; margin: 14pt auto;">
+<tr><th>#</th><th>Name</th><th>Roll number</th></tr>
+<tr><td>1</td><td>Madhav Chauhan</td><td>202401106</td></tr>
+<tr><td>2</td><td>Dhruva Bhatiya</td><td>202401029</td></tr>
+<tr><td>3</td><td>Tasvi Bhalani</td><td>202401027</td></tr>
+<tr><td>4</td><td>Tanvi Kakadiya</td><td>202401078</td></tr>
+<tr><td>5</td><td>Bhagy Parmar</td><td>202401137</td></tr>
+<tr><td>6</td><td>Kanika Pal</td><td>202401082</td></tr>
+</table>
+
+<h2>Contents</h2>
+<ol>
+<li>Overview and command-line interface</li>
+<li>Part I: implementation (data structures, message formats, single- and multi-threaded server)</li>
+<li>Part II: implementation (fault injection, Case 1, Case 2, Case 2 Enhanced)</li>
+<li>Experimental setup and metrics</li>
+<li>Part I results: single- vs multi-threaded server</li>
+<li>Part II results: Case 1 vs Case 2, comparison with Part I</li>
+<li>Part II Case 2 Enhanced: performance enhancements and improvement</li>
+<li>Deviations from the design document</li>
+<li>Conclusions</li>
+</ol>
+
+<!-- ===================================================================== -->
+<h2 class="pb">1. Overview and command-line interface</h2>
+
+<p>A server maps each <i>topic</i> (one sub-folder of <code>topics_root_dir</code>, here the ten
+animal folders of the Animals-10 dataset) to the files in it. A client names a topic and receives
+every file of that topic into <code>output_dir/&lt;topic&gt;/</code>. The project is written in C
+(gnu11) with POSIX threads and TCP/IPv4 sockets on Linux and is delivered as four self-contained
+versions:</p>
+
+<table border="1" cellspacing="0" cellpadding="3">
+<tr><th>Folder</th><th>Version</th><th>Behaviour after a cut connection</th></tr>
+<tr><td><code>Part1/</code></td><td>Plain service, <code>single</code> or <code>multi</code> (default) server</td><td>no faults injected</td></tr>
+<tr><td><code>Part2_Case1/</code></td><td>Fault injection, no session management</td><td>the client reconnects and the whole topic is sent again</td></tr>
+<tr><td><code>Part2_Case2/</code></td><td>Fault injection + session management</td><td>the client resumes from a checkpoint (file index, byte offset)</td></tr>
+<tr><td><code>Part2_Case2_Enhanced/</code></td><td>Case 2 + K parallel TCP connections, blocking or non-blocking client</td><td>the failed file is re-queued at its offset and fetched by any connection</td></tr>
+</table>
+
+<p>Every folder builds exactly two executables, <code>server</code> and <code>client</code>, with
+<code>make</code> and no warnings. Nothing is hard-coded: port, path and address come only from
+the command line.</p>
+
+<pre>Part I server:        ./server &lt;port&gt; &lt;topics_root_dir&gt; [single|multi]
+Part II server:       ./server &lt;port&gt; &lt;topics_root_dir&gt; &lt;failure_probability&gt; [seed]
+Client (all cases):   ./client &lt;server_ip&gt; &lt;server_port&gt; &lt;topic&gt; &lt;output_dir&gt;
+  Case 1 extra:       [max_retries=100]
+  Case 2 extra:       [max_retries=20]
+  Enhanced extra:     [connections=4] [max_retries=20] [threads|poll]
+Exit codes:           0 success, 1 fatal/usage error, 2 gave up after max_retries</pre>
+
+<p>On success the topic folder holds exactly the topic's files; partial files
+(<code>.part</code>) and the session record (<code>.session</code>) exist only while a transfer is
+unfinished.</p>
+
+<!-- ===================================================================== -->
+<h2>2. Part I: implementation</h2>
+
+<h3>2.1 Server data structures: mapping topics to directories</h3>
+
+<p>At start-up the server reads <code>topics_root_dir</code> with <code>opendir()/readdir()</code>.
+Every sub-folder becomes a <code>topic_t</code> whose key is the folder name and whose value is the
+folder's <code>realpath()</code>. Each folder is scanned once; its regular files are stored with
+their sizes and sorted by name, so a file index always denotes the same file (the Case 2
+checkpoints rely on this). Requests are then answered without touching the directory again.</p>
+
+<pre>typedef struct { char name[NAME_MAX+1]; uint64_t size; } file_entry_t;
+typedef struct {
+    char key[64];             /* topic key = folder name, e.g. "gatto"   */
+    char abs_path[PATH_MAX];  /* realpath() of the folder (the map value) */
+    file_entry_t *files;      /* sorted by name                           */
+    uint32_t n_files;  uint64_t total_bytes;
+} topic_t;
+/* topic_map_t: sorted array of topic_t* + pthread_rwlock_t (re-scan only) */</pre>
+
+<ul>
+<li><b>Lookup:</b> <code>bsearch()</code> on the sorted key array (exact match first, then a
+case-insensitive match, so <code>Cane</code> finds <code>cane</code>). An unknown topic gets
+<code>ERROR 404</code>.</li>
+<li><b>Concurrency:</b> after start-up the map is read-only for worker threads. Each
+<code>topic_t</code> is allocated once and never moved or freed; a re-scan for newly created topic
+folders (at most once per second, triggered by an unknown topic) only adds topics and swaps a new
+pointer array in under a short write lock.</li>
+</ul>
+
+<p>For the Animals-10 dataset the map holds 10 topics with 26 179 files and 614 MB in total
+(e.g. <code>cane</code> 4 863 files / 60.7 MB, <code>elefante</code> 1 446 files / 58.5 MB,
+<code>gatto</code> 1 668 files / 151.1 MB).</p>
+
+<h3>2.2 Client-server message format</h3>
+
+<p>TCP is a byte stream, so every message is framed by a fixed 16-byte header followed by
+<code>payload_len</code> payload bytes. All integers are packed field by field in network byte
+order; structures are never sent raw. All socket I/O goes through <code>sendall()/recvall()</code>
+loops that handle short transfers and <code>EINTR</code> and use <code>MSG_NOSIGNAL</code>.</p>
+
+<pre> 0        2      3      4                 8                              16
+ | magic  | ver  | type | reserved (0)    | payload_len (u64)            |
+ | 0x5446 |  1   |      |                 | bytes that follow the header |</pre>
+
+<table border="1" cellspacing="0" cellpadding="3">
+<tr><th>Code</th><th>Message</th><th>Direction</th><th>Payload (in order)</th><th>Used in</th></tr>
+<tr><td>0x01</td><td>GET</td><td>C&rarr;S</td><td>ASCII <code>"GET &lt;topic&gt;"</code></td><td>Part I, Case 1, Case 2</td></tr>
+<tr><td>0x02</td><td>RESUME</td><td>C&rarr;S</td><td>session_id[16], file_index u32, offset u64, topic_len u8, topic, name_len u16, name</td><td>Case 2</td></tr>
+<tr><td>0x03</td><td>MANIFEST_REQ</td><td>C&rarr;S</td><td>topic_len u8, topic, connections u8</td><td>Enhanced</td></tr>
+<tr><td>0x04</td><td>FETCH</td><td>C&rarr;S</td><td>same fields as RESUME</td><td>Enhanced</td></tr>
+<tr><td>0x10</td><td>TOPIC_BEGIN</td><td>S&rarr;C</td><td>session_id[16], file_count u32, total_bytes u64</td><td>Part I, Case 1, Case 2</td></tr>
+<tr><td>0x11</td><td>FILE_HDR</td><td>S&rarr;C</td><td>file_index u32, file_size u64, start_offset u64, name_len u16, name; then exactly file_size&minus;start_offset raw bytes</td><td>all</td></tr>
+<tr><td>0x12</td><td>FILE_END</td><td>S&rarr;C</td><td>file_index u32</td><td>all</td></tr>
+<tr><td>0x13</td><td>TOPIC_END</td><td>S&rarr;C</td><td>file_count u32, total_bytes u64</td><td>Part I, Case 1, Case 2</td></tr>
+<tr><td>0x14</td><td>RESUME_OK</td><td>S&rarr;C</td><td>file_index u32, offset u64</td><td>Case 2</td></tr>
+<tr><td>0x15</td><td>RESUME_REJECT</td><td>S&rarr;C</td><td>reason u16 (1&ndash;5)</td><td>Case 2, Enhanced</td></tr>
+<tr><td>0x16</td><td>MANIFEST</td><td>S&rarr;C</td><td>session_id[16], file_count u32, total_bytes u64, per file: size u64, name_len u16, name</td><td>Enhanced</td></tr>
+<tr><td>0x7F</td><td>ERROR</td><td>S&rarr;C</td><td>code u16 (400, 404, 500, 503), msg_len u16, msg</td><td>all</td></tr>
+</table>
+
+<p><b>Part I exchange.</b> The client sends <code>GET &lt;topic&gt;</code>. The server replies
+<code>TOPIC_BEGIN</code>, then for every file <code>FILE_HDR</code> + raw bytes +
+<code>FILE_END</code>, and finally <code>TOPIC_END</code> with the totals, which the client checks
+before exiting 0. File data is sent with zero-copy <code>sendfile()</code> in 64 KB chunks; headers
+are sent with <code>MSG_MORE</code> so the kernel coalesces them with the following data. The
+client rejects any file name containing <code>/</code>, <code>..</code>, a leading dot or control
+characters. Part I and Case 1 write each file directly under its final name, opened with
+<code>O_TRUNC</code>, so a restarted Case 1 attempt overwrites the earlier partial data.</p>
+
+<p><b>Robustness.</b> A request must arrive completely within an absolute 30 s deadline, only the
+four request types are accepted and their payload is limited to 512 bytes before anything is
+allocated; a malformed request gets <code>ERROR 400</code>. Server sockets use 30 s send/receive
+time-outs.</p>
+
+<h3>2.3 Single-threaded and multi-threaded server</h3>
+
+<p>Both modes share one accept loop (<code>server_core.c</code>); only the scheduling differs:</p>
+<ul>
+<li><b>single:</b> the accept loop calls <code>serve_client()</code> directly. Clients are served
+strictly one after another; the others wait in the kernel's listen backlog
+(<code>SOMAXCONN</code>).</li>
+<li><b>multi:</b> each accepted connection is handed to a new detached POSIX thread that runs
+<code>serve_client()</code>, so clients are served concurrently. At most 256 worker threads run at
+once; a connection beyond that gets <code>ERROR 503</code> and the client retries with back-off.
+Shared state (thread counter, statistics, topic map) is protected by mutexes / the rwlock.</li>
+<li><b>Shutdown:</b> a dedicated signal thread waits for SIGINT/SIGTERM with
+<code>sigwait()</code>, stops accepting, gives active transfers up to 5 s, prints a summary and
+exits 0. SIGPIPE is ignored.</li>
+</ul>
+
+<p><b>Timing and byte counting (for the measurements).</b> Every connection records its start and
+end with <code>clock_gettime(CLOCK_MONOTONIC)</code> and counts the data bytes actually returned by
+<code>sendfile()</code>. A connection's end is taken after the server has half-closed and seen the
+client's close, so the interval includes the data still queued in the socket buffer.</p>
+
+<!-- ===================================================================== -->
+<h2>3. Part II: implementation</h2>
+
+<p>All Part II cases use the multi-threaded server of Part I (one thread per client connection)
+with fault injection added.</p>
+
+<h3>3.1 Fault injection: when and how the failure decision is made</h3>
+
+<ul>
+<li><b>Meaning of p.</b> <code>&lt;failure_probability&gt;</code> p is the probability that a
+<i>connection</i> is interrupted during its file transfer. Each connection is cut with
+probability p, independently of the others and of the topic size.</li>
+<li><b>When.</b> Once per connection, at the moment the server has accepted the connection's first
+data request and knows how many file bytes it will send for it: the whole topic for a Case 1
+<code>GET</code>, the rest of the topic from the checkpoint for a Case 2 <code>GET</code>/<code>RESUME</code>,
+the rest of the requested file for the first <code>FETCH</code> of an Enhanced connection. Control
+messages never get a decision, so every fault interrupts file data.</li>
+<li><b>How.</b> Every connection owns a <code>drand48_r</code> generator (thread-safe, no global
+state) seeded with a hash of <code>(seed, conn_id)</code>; the optional <code>[seed]</code> argument
+makes runs repeatable. One draw r &isin; [0,1) decides: cut iff r &lt; p. If so, a second draw picks
+the cut byte uniformly among the request's data bytes.</li>
+<li><b>Interruption.</b> Before each 64 KB chunk the send loop checks whether the cut byte falls
+inside it. If so it sends only the bytes before the cut, logs a <code>FAULT</code> event (connection,
+file, offset), then calls <code>shutdown()</code> and <code>close()</code>. The client therefore
+sees the connection die at an arbitrary byte, not only at file or chunk boundaries. Only that
+connection ends; the server keeps serving all others.</li>
+<li><b>Expected effect.</b> An attempt survives with probability 1&minus;p. Case 1 needs on average
+1/(1&minus;p) attempts and each cut wastes on average half of the topic, so the expected redundant
+fraction is 0.5&middot;p/(1&minus;p). Case 2 and Enhanced re-send nothing.
+p = 1 cuts every connection, so no transfer can finish (clients exit 2).</li>
+</ul>
+
+<h3>3.2 Case 1: no session management</h3>
+
+<p>Case 1 uses the Part I messages. Neither side keeps transfer state. When the connection is lost
+before <code>TOPIC_END</code> (<code>recv()</code> returns 0, <code>ECONNRESET</code> or the 15 s
+receive time-out), the client waits (50 ms after an attempt that received data;
+50 ms doubling up to 1 s after attempts that received nothing), reconnects and sends
+<code>GET</code> again. The whole topic is re-sent and every file is rewritten from byte 0. After
+<code>max_retries</code> attempts (default 100) the client exits with status 2.</p>
+
+<h3>3.3 Case 2: session management and checkpoints</h3>
+
+<p>A checkpoint is the tuple (session id, topic, file index, file name, byte offset). The client is
+authoritative for the offset, because only it knows which bytes are on its disk; the server keeps a
+session record and validates every checkpoint before resuming.</p>
+
+<table border="1" cellspacing="0" cellpadding="3">
+<tr><th>Phase</th><th>Client &rarr; Server</th><th>Server &rarr; Client</th></tr>
+<tr><td>1. Start</td><td><code>GET &lt;topic&gt;</code></td><td><code>TOPIC_BEGIN</code>(random 16-byte session id from <code>getrandom()</code>, counts), then files</td></tr>
+<tr><td>2. Completion</td><td>&mdash;</td><td><code>TOPIC_END</code>; session marked DONE</td></tr>
+<tr><td>3. Failure</td><td>connection lost</td><td>fault injected: <code>shutdown</code> + <code>close</code>; session INTERRUPTED</td></tr>
+<tr><td>4. Resumption</td><td><code>RESUME</code>(session id, file index, offset, topic, name)</td><td><code>RESUME_OK</code>(index, offset), <code>FILE_HDR</code> with start_offset = offset, the remaining bytes and files, <code>TOPIC_END</code></td></tr>
+<tr><td>5. Invalid checkpoint</td><td><code>RESUME</code></td><td><code>RESUME_REJECT</code>(reason); the client discards partial data and restarts with <code>GET</code></td></tr>
+</table>
+
+<p><b>Stored by the client.</b> The file in progress is written to
+<code>&lt;name&gt;.part</code>; <b>its size is the byte offset</b>, so the checkpoint is updated by
+every <code>write()</code> at no extra cost and always matches the data on disk. On
+<code>FILE_END</code> the file is renamed to its final name. A small text record
+<code>.session</code> (session id, topic, file index, file name) is written atomically (temporary
+file + <code>rename()</code>) at <code>TOPIC_BEGIN</code> and at every <code>FILE_HDR</code>, and
+deleted after <code>TOPIC_END</code>. Because the checkpoint lives on disk, even a restarted client
+process resumes.</p>
+
+<p><b>Stored by the server.</b> A table of 256 session slots protected by one mutex: session id,
+topic, index of the file being sent, bytes of that file already sent, total bytes sent, reconnect
+count, state (ACTIVE / INTERRUPTED / DONE) and last-seen time (monotonic). The record is updated
+after every chunk sent. Idle slots expire after 300 s and are reused.</p>
+
+<p><b>Validation of a RESUME</b> (a failed check gives <code>RESUME_REJECT</code> with that number):
+(1) the topic exists; (2) file_index &lt; number of files; (3) the name equals the file at that
+index (detects a changed directory); (4) offset &le; file size; (5) for a known session, the
+checkpoint is not ahead of what the server has sent. If all checks pass, the server sends only bytes
+[offset, size) of that file with <code>sendfile()</code> from that offset, then the remaining files.
+No byte that was already stored is sent again, which the measurements confirm (0 redundant bytes).</p>
+
+<h3>3.4 Case 2 Enhanced: performance enhancements</h3>
+
+<p><b>Parallel TCP connections.</b> The client first opens one short connection,
+sends <code>MANIFEST_REQ(topic, K)</code> and receives the <code>MANIFEST</code> (session id and the
+size and name of every file). It then opens K worker connections (default 4, range 1&ndash;16).</p>
+<ul>
+<li><b>Work split:</b> a dynamic, file-level work queue protected by a mutex holds every file
+index. Each worker takes the next index and sends <code>FETCH</code>(session id, index, offset,
+topic, name); the reply is <code>FILE_HDR</code> + data + <code>FILE_END</code>. Faster connections
+take more files, which balances the load automatically.</li>
+<li><b>Reassembly:</b> a file is owned by exactly one worker at a time and written to its own
+<code>.part</code> file, renamed on <code>FILE_END</code>. Files are independent, so no byte-stream
+reassembly across connections is needed.</li>
+<li><b>Recovery:</b> when a worker's connection fails, it puts its file back into the queue with
+the offset reached (the <code>.part</code> size) and reconnects; any worker may continue that file
+with <code>FETCH</code> from that offset. The other K&minus;1 connections are unaffected. The server
+keeps, per session, the bytes sent of every file and validates each <code>FETCH</code> like a
+<code>RESUME</code>.</li>
+<li><b>Completion:</b> when the queue is empty and all workers are idle (counter + condition
+variable), the client deletes <code>.session</code> and exits 0.</li>
+</ul>
+
+<p><b>Socket mode.</b> Two client engines are implemented and measured:
+<code>threads</code> (default: one thread per connection with blocking sockets) and
+<code>poll</code> (a single thread drives all K sockets with <code>O_NONBLOCK</code> and
+<code>poll()</code>, treating <code>EAGAIN</code> as "retry when ready").</p>
+
+<p><b>Other enhancements</b> (all versions): zero-copy <code>sendfile()</code>; cached, pre-sorted
+file lists (no directory scan per request); <code>MSG_MORE</code> header coalescing;
+<code>TCP_NODELAY</code> on data sockets so the per-file <code>FETCH</code> round trip is not delayed
+by Nagle + delayed ACK; 64 KB I/O chunks; optional socket buffer sizes via
+<code>FDS_SNDBUF</code>/<code>FDS_RCVBUF</code> (measured in &sect;7).</p>
+
+<!-- ===================================================================== -->
+<h2 class="pb">4. Experimental setup and metrics</h2>
+
+<h3>4.1 Testbed</h3>
+<p>The experiments use three hosts: the server <b>S</b> and two client hosts <b>A</b> and
+<b>B</b>. Each host has its own Linux network stack (network namespace) and is connected to a
+software switch (Linux bridge) by a 1 Gbit/s link (<code>tbf</code>) with 0.1 ms one-way delay
+(<code>netem</code>) and the <code>fq_codel</code> queue discipline. The hosts are emulated on one
+machine (Intel Core i5-13450HX, 16 logical CPUs, Fedora Linux, kernel 7.2.11, gcc 16.2.1). The
+measured link capacity is 957 Mbit/s for one TCP flow and 2 &times; 478 Mbit/s when two flows share
+S's uplink, so S's 1 Gbit/s uplink is the shared bottleneck for all clients. Topics are read from
+S's local disk; every client writes to its own directory on local disk. The full Animals-10
+dataset (10 topics, 26 179 files, 614 MB) is served.</p>
+
+<h3>4.2 Procedure</h3>
+<ul>
+<li>A controller script starts the server on S, then starts all clients of a run at the same moment
+(split evenly over A and B), waits for them, checks every client's output against the topic
+(file count and bytes) and stops the server with SIGINT.</li>
+<li>Every configuration: <b>1 warm-up run (discarded) + 5 measured repetitions</b>; values are
+reported as mean &plusmn; sample standard deviation.</li>
+<li>Part II repetition r uses the fixed seed 1000 + r for every case, so Case 1, Case 2 and
+Enhanced see the same fault decisions per connection id.</li>
+<li>Raw logs: the server writes one CSV row per connection plus one row per event (FAULT, RESUME,
+...), each client one row per run (<code>FDS_LOG</code>, <code>FDS_EVENTS</code>). All raw CSV
+files are in <code>Results/raw/</code>; the summary tables and graphs are computed from them by
+<code>tools/exp/analyze.py</code> and <code>tools/exp/plot.py</code>.</li>
+<li>In total 412 runs were executed (72 warm-up, 340 measured). All 340 measured runs completed and
+passed the output check except one Case 2 run at p = 0.9, in which one of the four clients gave up
+(&sect;6.4).</li>
+</ul>
+
+<h3>4.3 Metrics</h3>
+<table border="1" cellspacing="0" cellpadding="3">
+<tr><th>Metric</th><th>Definition</th></tr>
+<tr><td>Aggregate throughput</td><td>&Sigma; data bytes sent by the server &divide; (last connection end &minus; first connection start), measured on the server's clock with <code>clock_gettime(CLOCK_MONOTONIC)</code>. MB = 10<sup>6</sup> bytes.</td></tr>
+<tr><td>Total bytes transmitted</td><td>&Sigma; file data bytes sent by the server over all connections of a run, including retransmissions.</td></tr>
+<tr><td>Useful bytes</td><td>Bytes of the topic stored by the clients (topic size &times; number of clients).</td></tr>
+<tr><td>Redundant bytes</td><td>Total bytes transmitted &minus; useful bytes.</td></tr>
+<tr><td>Overhead</td><td>Redundant bytes &divide; useful bytes &times; 100 %. <i>Wire overhead</i> additionally counts message headers and control messages.</td></tr>
+<tr><td>Completion time</td><td>Per client, from its first connection until the topic is complete, including back-off and reconnections.</td></tr>
+<tr><td>Goodput</td><td>Useful bytes &divide; the same interval as the aggregate throughput.</td></tr>
+<tr><td>Faults, reconnects</td><td>FAULT events in the server log; reconnections reported by the clients.</td></tr>
+</table>
+
+<!-- ===================================================================== -->
+<h2 class="pb">5. Part I results: single- vs multi-threaded server</h2>
+
+<p>All clients request the topic <code>elefante</code> (1 446 files, T = 58.5 MB). N clients in
+total, split evenly over A and B (N = 1: one client on A).</p>
+
+<table border="1" cellspacing="0" cellpadding="3">
+<tr><th rowspan="2" class="n">N</th><th colspan="3">Single-threaded server</th><th colspan="3">Multi-threaded server</th></tr>
+<tr><th class="n">Aggregate throughput (MB/s)</th><th class="n">Mean completion (s)</th><th class="n">Max completion (s)</th><th class="n">Aggregate throughput (MB/s)</th><th class="n">Mean completion (s)</th><th class="n">Max completion (s)</th></tr>
+<tr><td class="n">1</td><td class="n">119.3 &plusmn; 0.0</td><td class="n">0.491</td><td class="n">0.491</td><td class="n">119.3 &plusmn; 0.0</td><td class="n">0.491</td><td class="n">0.491</td></tr>
+<tr><td class="n">2</td><td class="n">119.2 &plusmn; 0.1</td><td class="n">0.736</td><td class="n">0.981</td><td class="n">119.3 &plusmn; 0.0</td><td class="n">0.981</td><td class="n">0.981</td></tr>
+<tr><td class="n">4</td><td class="n">119.2 &plusmn; 0.0</td><td class="n">1.23</td><td class="n">1.96</td><td class="n">119.2 &plusmn; 0.1</td><td class="n">1.96</td><td class="n">1.96</td></tr>
+<tr><td class="n">8</td><td class="n">119.2 &plusmn; 0.1</td><td class="n">2.21</td><td class="n">3.93</td><td class="n">119.1 &plusmn; 0.2</td><td class="n">3.93</td><td class="n">3.93</td></tr>
+<tr><td class="n">16</td><td class="n">119.2 &plusmn; 0.0</td><td class="n">4.17</td><td class="n">7.85</td><td class="n">119.2 &plusmn; 0.1</td><td class="n">7.85</td><td class="n">7.85</td></tr>
+<tr><td class="n">32</td><td class="n">119.2 &plusmn; 0.0</td><td class="n">8.10</td><td class="n">15.70</td><td class="n">119.2 &plusmn; 0.1</td><td class="n">15.65</td><td class="n">15.70</td></tr>
+</table>
+<p class="cap">Table 1: Part I, mean &plusmn; sd over 5 repetitions (completion-time sd &le; 0.09 s).</p>
+
+<div class="fig"><img width="600" src="../../Results/Part1_SingleVsMulti_throughput.png" alt="Part I aggregate throughput vs N"></div>
+<p class="cap">Figure 1: Aggregate file transfer rate vs number of clients (Results/Part1_SingleVsMulti_throughput.png).</p>
+
+<div class="fig"><img width="600" src="../../Results/Part1_SingleVsMulti_completion.png" alt="Part I completion time vs N"></div>
+<p class="cap">Figure 2: Per-client completion time vs number of clients (Results/Part1_SingleVsMulti_completion.png).</p>
+
+<h3>Analysis</h3>
+<ul>
+<li><b>Aggregate throughput is the same for both servers and every N: 119.2 MB/s
+(954 Mbit/s).</b> That is the capacity of S's 1 Gbit/s link minus TCP/IP header overhead. Already
+one client saturates the link, because the server sends with zero-copy <code>sendfile()</code> and
+its CPU is never the bottleneck. Adding threads cannot raise the rate of a link that is already
+full, so the throughput curve is flat.</li>
+<li><b>The servers differ in how the link is shared.</b> Let t = T/R = 58.5 MB / 119.2 MB/s
+= 0.491 s be the time to send one topic. The multi-threaded server serves all N clients
+concurrently; they share the bandwidth fairly and all finish together at &asymp; N&middot;t
+(15.7 s for N = 32). The single-threaded server serves them one after another: client i finishes
+at i&middot;t, so the mean is (N+1)/2&middot;t (8.10 s for N = 32) while the last client still
+finishes at N&middot;t. The measurements match both formulas exactly.</li>
+<li>For equal requests on a shared bottleneck, first-come-first-served (single) therefore gives a
+lower <i>mean</i> completion time, whereas the multi-threaded server gives every client steady
+progress from the start (per-client goodput R/N) and the same worst-case completion time.</li>
+<li>The multi-threaded server is the right design whenever the bottleneck is per connection rather
+than the shared link: a slow or distant client (high round-trip time, Wi-Fi), very different topic
+sizes (a small request is not stuck behind a large one) or a stalled client, which would block the
+single-threaded server for every other client until its time-out. Part II therefore builds on the
+multi-threaded server.</li>
+</ul>
+
+<!-- ===================================================================== -->
+<h2 class="pb">6. Part II results: Case 1 vs Case 2</h2>
+
+<p>Workload: topic <code>gatto</code> (1 668 files, T = 151.14 MB), 4 clients per run (2 on A,
+2 on B), so 604.6 MB of useful data per run; p &isin; {0, 0.1, 0.2, 0.3, 0.5, 0.7, 0.9}; 5
+repetitions per value. Case 1 clients allow 100 attempts, Case 2 clients 20 consecutive attempts
+without progress.</p>
+
+<table border="1" cellspacing="0" cellpadding="3">
+<tr><th rowspan="2" class="n">p</th><th colspan="6">Case 1 (no session management)</th><th colspan="6">Case 2 (session management)</th></tr>
+<tr><th class="n">Total (MB)</th><th class="n">Redundant (MB)</th><th class="n">Overhead (%)</th><th class="n">Completion (s)</th><th class="n">Goodput (MB/s)</th><th class="n">Faults</th>
+<th class="n">Total (MB)</th><th class="n">Redundant (MB)</th><th class="n">Overhead (%)</th><th class="n">Completion (s)</th><th class="n">Goodput (MB/s)</th><th class="n">Faults</th></tr>
+<tr><td class="n">0</td><td class="n">604.6</td><td class="n">0</td><td class="n">0</td><td class="n">5.06</td><td class="n">119.5</td><td class="n">0</td><td class="n">604.6</td><td class="n">0</td><td class="n">0</td><td class="n">5.06</td><td class="n">119.5</td><td class="n">0</td></tr>
+<tr><td class="n">0.1</td><td class="n">604.6</td><td class="n">0</td><td class="n">0</td><td class="n">5.06</td><td class="n">119.5</td><td class="n">0</td><td class="n">604.6</td><td class="n">0</td><td class="n">0</td><td class="n">5.06</td><td class="n">119.5</td><td class="n">0</td></tr>
+<tr><td class="n">0.2</td><td class="n">654.2</td><td class="n">49.7</td><td class="n">8.2</td><td class="n">5.16</td><td class="n">111.3</td><td class="n">0.8</td><td class="n">604.6</td><td class="n">0</td><td class="n">0</td><td class="n">5.05</td><td class="n">119.5</td><td class="n">0.8</td></tr>
+<tr><td class="n">0.3</td><td class="n">721.3</td><td class="n">116.7</td><td class="n">19.3</td><td class="n">5.30</td><td class="n">100.8</td><td class="n">1.8</td><td class="n">604.6</td><td class="n">0</td><td class="n">0</td><td class="n">5.04</td><td class="n">119.4</td><td class="n">1.8</td></tr>
+<tr><td class="n">0.5</td><td class="n">877.9</td><td class="n">273.3</td><td class="n">45.2</td><td class="n">6.03</td><td class="n">85.9</td><td class="n">3.6</td><td class="n">604.6</td><td class="n">0</td><td class="n">0</td><td class="n">5.03</td><td class="n">119.1</td><td class="n">3.6</td></tr>
+<tr><td class="n">0.7</td><td class="n">1 245</td><td class="n">640.6</td><td class="n">106.0</td><td class="n">7.72</td><td class="n">63.3</td><td class="n">8.6</td><td class="n">604.6</td><td class="n">0</td><td class="n">0</td><td class="n">5.04</td><td class="n">116.7</td><td class="n">8.6</td></tr>
+<tr><td class="n">0.9</td><td class="n">3 922</td><td class="n">3 317</td><td class="n">548.7</td><td class="n">19.39</td><td class="n">22.3</td><td class="n">43.8</td><td class="n">604.6</td><td class="n">0</td><td class="n">0</td><td class="n">6.46</td><td class="n">73.6</td><td class="n">36.0</td></tr>
+</table>
+<p class="cap">Table 2: Part II, mean over 5 repetitions (per run of 4 clients). Case 2 at p = 0.9: 4 of
+5 runs completed, 1 run had one client give up (DNF), excluded from the means. Standard deviations
+are in Results/Part2_summary.csv.</p>
+
+<div class="fig"><img width="600" src="../../Results/Part2_Comparison_throughput.png" alt="Throughput and goodput vs p"></div>
+<p class="cap">Figure 3: Aggregate throughput (all data bytes) and goodput (useful bytes) vs p, all
+cases, with the Part I reference (Results/Part2_Comparison_throughput.png).</p>
+
+<div class="fig"><img width="600" src="../../Results/Part2_Case1_overhead.png" alt="Case 1 overhead vs p"></div>
+<p class="cap">Figure 4: Case 1 redundant bytes vs p, measured and predicted (Results/Part2_Case1_overhead.png).</p>
+
+<div class="fig"><img width="600" src="../../Results/Part2_Comparison_completion.png" alt="Completion time vs p"></div>
+<p class="cap">Figure 5: Mean per-client completion time vs p (Results/Part2_Comparison_completion.png).</p>
+
+<div class="fig"><img width="600" src="../../Results/Part2_ThroughputVsOverhead.png" alt="Goodput vs overhead"></div>
+<p class="cap">Figure 6: Throughput (goodput) vs overhead (Results/Part2_ThroughputVsOverhead.png).</p>
+
+<p>Further graphs in <code>Results/</code>: <code>Part2_Case1_throughput</code>,
+<code>Part2_Case2_throughput</code>, <code>Part2_Case2_overhead</code>,
+<code>Part2_Comparison_overhead</code>.</p>
+
+<h3>6.1 Total, useful and redundant bytes</h3>
+<ul>
+<li><b>Case 2 never sends a byte twice.</b> At every p the server sent exactly the useful
+604.6 MB (overhead 0 %), with on average 36 faults per run at p = 0.9: each RESUME continues
+from the byte offset the client has stored.</li>
+<li><b>Case 1 re-sends the whole topic after every cut.</b> Its redundant bytes grow from 49.7 MB
+(8.2 %) at p = 0.2 to 3 317 MB (549 %) at p = 0.9, i.e. the server transmitted 6.5 times the useful
+data. The model of &sect;3.1 predicts 0.5&middot;p/(1&minus;p): 12.5 %, 21.4 %, 50 %, 117 % and
+450 % for p = 0.2 &hellip; 0.9; the measurements (8.2, 19.3, 45.2, 106, 549 %) follow it closely
+(Figure 4). The large standard deviations (e.g. 45 &plusmn; 34 % at p = 0.5) are inherent: each
+cut wastes a uniformly random fraction of the topic and a run has only a few cuts.</li>
+<li>At p = 0.1 no connection was cut in any of the 5 repetitions (prediction: 0.4 faults per run),
+which is why both cases equal p = 0 there.</li>
+<li>The measured number of faults agrees with the prediction (e.g. Case 1: 3.6 vs 4.0 at p = 0.5,
+8.6 vs 9.3 at p = 0.7), which confirms that p behaves as specified.</li>
+</ul>
+
+<h3>6.2 Completion time and throughput vs overhead</h3>
+<ul>
+<li><b>Aggregate throughput hardly changes with p</b> (Case 1: 119.5 &rarr; 115.9 MB/s): the link
+stays busy, but in Case 1 it is busy with redundant data. <b>Goodput</b> shows the real cost:
+Case 1 falls from 119.5 to 85.9 MB/s at p = 0.5 and to 22.3 MB/s at p = 0.9, roughly throughput
+&divide; (1 + overhead), as Figure 6 shows. Completion time rises accordingly from 5.06 s to
+6.03 s (p = 0.5) and 19.4 s (p = 0.9).</li>
+<li><b>Case 2 keeps goodput and completion time at the fault-free level up to p = 0.7</b>
+(116.7&ndash;119.5 MB/s, 5.03&ndash;5.06 s). Each fault only costs a reconnection (a 50 ms
+back-off and one round trip).</li>
+</ul>
+
+<h3>6.3 Comparison with Part I</h3>
+<p>With p = 0 every Part II version reaches the Part I multi-threaded result with the same topic and
+4 clients (119.5 MB/s, 5.06 s): Case 1 and Case 2 119.5 MB/s, Enhanced 119.2&ndash;119.3 MB/s,
+i.e. 100 % of Part I. Fault injection and session bookkeeping therefore cost nothing measurable
+when no fault occurs. The protocol overhead on the wire (headers and control messages) is 0.091 %
+of the data for Part I, Case 1 and Case 2.</p>
+
+<h3>6.4 Case 2 at p = 0.9: the tail effect</h3>
+<p>At p = 0.9 Case 2's mean goodput drops to 73.6 &plusmn; 39 MB/s and one client of one run gave up.
+The per-client logs show why. Most clients still finished in 4.9&ndash;5.8 s, but clients that needed
+25&ndash;47 attempts took 13&ndash;22 s. Each cut happens at a uniformly random byte of the
+connection's remaining data, so after a few cuts the remaining part of the topic becomes small,
+and a cut of a small remainder delivers few or no new bytes. Attempts without new data double the
+back-off up to 1 s. The client that gave up had received all but the very last byte
+(151 144 281 of 151 144 282 bytes): with one byte left, every cut falls on byte 0, and 20 such
+attempts in a row (probability 0.9<sup>20</sup> &asymp; 12 %) exhaust <code>max_retries</code>.
+This is a consequence of the extreme fault rate combined with the retry limit, not data loss: the
+received data was correct. Case 2 Enhanced does not show the effect (&sect;7).</p>
+
+<!-- ===================================================================== -->
+<h2 class="pb">7. Part II Case 2 Enhanced: performance enhancements and improvement</h2>
+
+<p>Enhancements used: <b>K parallel TCP connections</b> with a dynamic file-level work queue
+(K = 1, 2, 4, 8; threads engine), the <b>non-blocking socket</b> engine (<code>poll</code>, K = 4),
+zero-copy <code>sendfile()</code>, <code>TCP_NODELAY</code> and <code>MSG_MORE</code>, and a
+socket-buffer-size experiment. Same workload as &sect;6.</p>
+
+<table border="1" cellspacing="0" cellpadding="3">
+<tr><th rowspan="2">Implementation</th><th colspan="2">p = 0</th><th colspan="2">p = 0.7</th><th colspan="3">p = 0.9</th></tr>
+<tr><th class="n">Goodput (MB/s)</th><th class="n">Completion (s)</th><th class="n">Goodput (MB/s)</th><th class="n">Completion (s)</th><th class="n">Goodput (MB/s)</th><th class="n">Completion (s)</th><th class="n">DNF runs</th></tr>
+<tr><td>Case 1</td><td class="n">119.5</td><td class="n">5.06</td><td class="n">63.3</td><td class="n">7.72</td><td class="n">22.3</td><td class="n">19.39</td><td class="n">0/5</td></tr>
+<tr><td>Case 2</td><td class="n">119.5</td><td class="n">5.06</td><td class="n">116.7</td><td class="n">5.04</td><td class="n">73.6</td><td class="n">6.46</td><td class="n">1/5</td></tr>
+<tr><td>Enhanced K = 1, threads</td><td class="n">119.2</td><td class="n">5.04</td><td class="n">117.5</td><td class="n">4.74</td><td class="n">115.0</td><td class="n">4.42</td><td class="n">0/5</td></tr>
+<tr><td>Enhanced K = 2, threads</td><td class="n">119.2</td><td class="n">5.07</td><td class="n">118.7</td><td class="n">4.96</td><td class="n">116.9</td><td class="n">4.68</td><td class="n">0/5</td></tr>
+<tr><td>Enhanced K = 4, threads</td><td class="n">119.2</td><td class="n">5.04</td><td class="n">119.2</td><td class="n">5.00</td><td class="n">118.5</td><td class="n">4.88</td><td class="n">0/5</td></tr>
+<tr><td>Enhanced K = 8, threads</td><td class="n">119.3</td><td class="n">5.05</td><td class="n">119.3</td><td class="n">5.04</td><td class="n">119.1</td><td class="n">4.98</td><td class="n">0/5</td></tr>
+<tr><td>Enhanced K = 4, poll</td><td class="n">119.2</td><td class="n">5.07</td><td class="n">119.2</td><td class="n">5.03</td><td class="n">118.5</td><td class="n">4.91</td><td class="n">0/5</td></tr>
+</table>
+<p class="cap">Table 3: Enhanced vs Case 1 and Case 2 (means over 5 repetitions; Enhanced has 0
+redundant bytes at every p).</p>
+
+<div class="fig"><img width="600" src="../../Results/Part2_Case2_Enhanced_throughput.png" alt="Enhanced throughput vs p"></div>
+<p class="cap">Figure 7: Enhanced throughput vs p for K parallel connections (Results/Part2_Case2_Enhanced_throughput.png).</p>
+
+<div class="fig"><img width="600" src="../../Results/Part2_Enhanced_ThreadsVsPoll.png" alt="Threads vs poll"></div>
+<p class="cap">Figure 8: Blocking threads vs non-blocking <code>poll()</code> client engine, K = 4 (Results/Part2_Enhanced_ThreadsVsPoll.png).</p>
+
+<div class="fig"><img width="600" src="../../Results/Buffers_throughput.png" alt="Socket buffer sizes"></div>
+<p class="cap">Figure 9: Throughput vs socket buffer size at p = 0 (Results/Buffers_throughput.png).</p>
+
+<h3>Measured improvement and justification</h3>
+<ul>
+<li><b>Under faults, Enhanced is clearly better.</b> At p = 0.9, K = 4 delivers 118.5 MB/s goodput
+against 73.6 MB/s for Case 2 (+61 %) and 22.3 MB/s for Case 1 (5.3&times;), with mean completion
+4.88 s against 6.46 s and 19.39 s, no redundant byte and no client giving up. With K = 8 goodput
+stays at 119.1 MB/s even at p = 0.9, i.e. at the fault-free level.
+<i>Why:</i> a connection is cut at most once, inside the first file it fetches, so every
+connection that survives its first file is never interrupted again. When a connection fails, its
+file goes back into the queue with its offset and is usually taken by one of the other K&minus;1
+connections that are still open, so the tail of tiny, repeatedly cut remainders seen in Case 2
+(&sect;6.4) does not occur, and the link keeps carrying data during reconnections.</li>
+<li><b>Without faults the improvement is zero on this network</b> (119.2&ndash;119.3 MB/s for all
+K, equal to Part I). One TCP connection already fills the 1 Gbit/s link: the bandwidth-delay
+product is only 1 Gbit/s &times; 0.2 ms &asymp; 25 KB, far below the TCP window, and the extra
+per-file FETCH round trip (0.2 ms) is negligible. Parallel connections help when a single
+connection cannot fill the path (high RTT or packet loss, e.g. Wi-Fi or a WAN); here the shared
+link is the limit, and more connections only divide it.</li>
+<li><b>Blocking threads vs non-blocking poll:</b> identical performance (Figure 8; 118.5 MB/s at
+p = 0.9 for both). With K = 4 sockets the cost of threads is negligible; the poll engine reaches the
+same result with a single thread, i.e. fewer resources and no locking between workers, and would
+scale better to many connections.</li>
+<li><b>Socket buffers:</b> 64 KB, 256 KB, 1 MB, 4 MB and the kernel default all give
+119.2&ndash;119.5 MB/s for Case 2 and Enhanced (Figure 9). Since the bandwidth-delay product is
+about 25 KB, even 64 KB buffers are large enough; the default (autotuning) is kept.</li>
+<li><b>Cost:</b> Enhanced sends one FETCH request per file, raising the wire overhead from 0.091 %
+to 0.129 % of the data; no data byte is ever sent twice.</li>
+<li>The mean completion time of Enhanced at high p (4.4&ndash;4.9 s) is slightly below the
+fault-free 5.05 s because the four clients no longer share the link exactly equally, so some finish
+earlier; the time until the last client finishes is unchanged (aggregate throughput 115&ndash;119
+MB/s).</li>
+</ul>
+
+<!-- ===================================================================== -->
+<h2 class="pb">8. Deviations from the design document</h2>
+
+<p>The implementation follows the submitted design document except at the following reviewed
+points.</p>
+
+<table border="1" cellspacing="0" cellpadding="3">
+<tr><th>#</th><th>Design said</th><th>Implementation does, and why</th></tr>
+<tr><td>1</td><td>Client receive time-out 15 s</td><td>Part I client has none (Part II clients keep 15 s): with the single-threaded server, queued clients legitimately wait for all earlier clients.</td></tr>
+<tr><td>2</td><td>Control payload &le; 64 KB</td><td>Cap per message type; the MANIFEST may be up to 64 MiB (the MANIFEST of <code>cane</code> is about 250 KB).</td></tr>
+<tr><td>3</td><td>Topic array rebuilt on re-scan</td><td>Topics are allocated once and never moved; a re-scan only adds topics and swaps a pointer array, so workers never see a moved topic.</td></tr>
+<tr><td>4</td><td>&mdash;</td><td>Output goes to <code>output_dir/&lt;topic exactly as typed&gt;/</code>; only the topic files remain on success.</td></tr>
+<tr><td>5</td><td><code>-Werror</code> in the Makefile</td><td><code>make</code> uses <code>-Wall -Wextra</code>; <code>make strict</code> adds <code>-Werror</code> (a new warning of another compiler version must not prevent the build).</td></tr>
+<tr><td>6</td><td>Byte-range split of files &gt; 8 MB</td><td>Not implemented: one FETCH transfers one whole file; Animals-10 files are tens of KB.</td></tr>
+<tr><td>7</td><td>Text errors</td><td>The "&asymp; 1 700 chunks" example is <code>gatto</code>, not <code>cane</code>; every name uses 006_043.</td></tr>
+<tr><td>8</td><td>Logs written to a file</td><td>CSV logs only when <code>FDS_LOG</code>/<code>FDS_EVENTS</code> are set (no hard-coded paths).</td></tr>
+<tr><td>9</td><td>A faulted chunk is not sent at all</td><td>The cut lands at a random byte inside the chunk, so faults happen "at any point in time" and byte-offset resume is exercised.</td></tr>
+<tr><td>10</td><td>&mdash;</td><td><code>TCP_NODELAY</code> on data sockets (avoids Nagle + delayed-ACK stalls of the per-file FETCH).</td></tr>
+<tr><td>11</td><td>Enhanced FETCH validated like RESUME</td><td>The server keeps bytes sent per file (<code>sent_off[i]</code>), because with K connections one (file, offset) pair cannot describe progress.</td></tr>
+<tr><td>12</td><td>256 slots expired after 300 s</td><td>Explicit slot reuse order (free, oldest DONE, idle &gt; 300 s, oldest INTERRUPTED); a fresh ACTIVE session is never evicted.</td></tr>
+<tr><td>13</td><td>Enhanced recovery re-queues (file, offset)</td><td>Also after a client restart (queue rebuilt from MANIFEST + files on disk); back-off resets after progress; FETCH is never pipelined.</td></tr>
+<tr><td>14</td><td>Accept loop in each <code>server.c</code></td><td>Shared <code>server_core.c</code> for all four versions.</td></tr>
+<tr><td>15</td><td>p &isin; {0 &hellip; 0.01} per chunk, K &isin; {2, 4, 8}</td><td>p &isin; {0, 0.1, &hellip;, 0.9} per connection (see 28), K &isin; {1, 2, 4, 8}; throughput-vs-overhead plot added.</td></tr>
+<tr><td>16</td><td><code>tcp_connect(ip, port)</code></td><td><code>getaddrinfo</code>, 10 s connect time-out, backlog <code>SOMAXCONN</code>.</td></tr>
+<tr><td>17</td><td>Module list</td><td>Added <code>util</code> and <code>server_core</code>; <code>transfer</code> holds the client receive logic.</td></tr>
+<tr><td>18</td><td>Back-off 50 ms doubling to 1 s</td><td>Doubling only over consecutive attempts that received no data; after a cut with progress the wait is 50 ms.</td></tr>
+<tr><td>19</td><td>&mdash;</td><td>Case 2/Enhanced resume files with names up to 250 bytes (<code>&lt;name&gt;.part</code> must fit the 255-byte limit).</td></tr>
+<tr><td>20</td><td>Seed: <code>seed ^ conn_id</code></td><td>Hashed (splitmix64) per-connection seed; plain XOR made repetitions overlap.</td></tr>
+<tr><td>21</td><td>Connection end = last send</td><td>End taken after the half-close is acknowledged by the client's close, so queued socket data is inside the measured interval.</td></tr>
+<tr><td>22</td><td>Check 5 whenever the id is known</td><td>A session adopted after a server restart skips check 5 (no record of what was sent); checks 1&ndash;4 still apply.</td></tr>
+<tr><td>23</td><td>Enhanced client arguments</td><td>Third optional argument selects <code>threads</code> or <code>poll</code>.</td></tr>
+<tr><td>24</td><td>Reconnects = faults</td><td>Holds for Case 1/2; in Enhanced another open connection often takes a re-queued file, so reconnects can be fewer than faults.</td></tr>
+<tr><td>25</td><td>Requests read with per-call time-out</td><td>Absolute 30 s deadline per request, only four request types, payload &le; 512 bytes checked before allocation.</td></tr>
+<tr><td>26</td><td>Part I client: any error fatal</td><td><code>ERROR 503</code> (busy) is retried with back-off up to 100 times.</td></tr>
+<tr><td>27</td><td>Enhanced fresh start</td><td>A fresh start deletes stale manifest files and <code>.part</code> files before writing <code>.session</code>; an unfinished FETCH marks the session INTERRUPTED.</td></tr>
+<tr><td>28</td><td>One fault draw per 64 KB chunk</td><td><b>One fault decision per connection</b> (&sect;3.1). With a per-chunk p a Case 1 attempt survives with (1&minus;p)<sup>N</sup>, so on <code>gatto</code> (&asymp; 3 500 chunks) Case 1 could not finish for any p &ge; 0.01; the guidelines define p as how frequently the session is interrupted.</td></tr>
+</table>
+
+<!-- ===================================================================== -->
+<h2>9. Conclusions</h2>
+<ul>
+<li>All four versions transfer every topic correctly; every measured run's output was verified
+(340 runs, one Case 2 client gave up at p = 0.9 after receiving all but the last byte).</li>
+<li><b>Part I:</b> on a 1 Gbit/s network a single connection with <code>sendfile()</code> already
+saturates the server's link (119 MB/s), so the single- and multi-threaded servers reach the same
+aggregate rate. The multi-threaded server shares the link fairly between concurrent clients,
+whereas the single-threaded server serves them in order (lower mean but equal worst-case
+completion time); multi-threading matters when connections, not the link, are the bottleneck.</li>
+<li><b>Case 1 vs Case 2:</b> without session management the redundant data grows as
+0.5&middot;p/(1&minus;p) of the topic (549 % at p = 0.9) and goodput falls from 119.5 to
+22.3 MB/s. With session management no byte is sent twice at any p and goodput stays at the
+fault-free level up to p = 0.7.</li>
+<li><b>Case 2 Enhanced:</b> parallel connections with a shared work queue keep goodput at
+115&ndash;119 MB/s and completion near 5 s even at p = 0.9 (+61 % over Case 2, 5.3&times; Case 1).
+Without faults, parallel connections, the non-blocking engine and larger socket buffers give no gain
+on this low-latency network because the link itself is the limit.</li>
+</ul>
+
+</body>
+</html>
